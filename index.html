@@ -20,11 +20,20 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f1f5f9;color:#1e293b
   --bd:1px solid #e2e8f0;--r:8px;--rlg:12px
 }
 
+/* ══ LOADING OVERLAY ══ */
+#loadingOverlay{
+  position:fixed;inset:0;background:rgba(15,41,66,.85);z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+}
+#loadingOverlay.hide{display:none}
+.spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loadingOverlay p{color:#fff;font-size:14px}
+
 /* ══ LOGIN ══ */
 #loginPage{
   display:flex;align-items:center;justify-content:center;
-  min-height:100vh;background:linear-gradient(135deg,#0f2942 0%,#185FA5 100%);
-  padding:20px;
+  min-height:100vh;background:linear-gradient(135deg,#0f2942 0%,#185FA5 100%);padding:20px;
 }
 .login-box{
   background:#fff;border-radius:16px;padding:36px 28px;width:100%;max-width:380px;
@@ -36,16 +45,9 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f1f5f9;color:#1e293b
 .login-logo p{font-size:12px;color:#64748b;margin-top:4px}
 .login-field{margin-bottom:16px}
 .login-field label{display:block;font-size:11px;font-weight:600;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
-.login-field input{
-  width:100%;padding:12px 14px;border:var(--bd);border-radius:var(--r);
-  font-size:16px;font-family:inherit;letter-spacing:3px;background:#f8fafc;
-}
-.login-field input:focus{outline:none;border-color:var(--blue);background:#fff;letter-spacing:3px}
-.login-btn{
-  width:100%;padding:13px;background:var(--blue);color:#fff;border:none;
-  border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;
-  display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;
-}
+.login-field input{width:100%;padding:12px 14px;border:var(--bd);border-radius:var(--r);font-size:16px;font-family:inherit;letter-spacing:3px;background:#f8fafc}
+.login-field input:focus{outline:none;border-color:var(--blue);background:#fff}
+.login-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
 .login-btn:active{background:var(--blue800)}
 .login-err{color:var(--red);font-size:13px;text-align:center;margin-top:10px;min-height:20px}
 .login-shake{animation:shake .4s ease}
@@ -57,7 +59,9 @@ nav{background:#fff;border-bottom:var(--bd);display:flex;padding:0 8px;position:
 .nav-item{padding:13px 12px;cursor:pointer;font-weight:500;font-size:13px;color:#64748b;border-bottom:2px solid transparent;display:flex;align-items:center;gap:5px;white-space:nowrap}
 .nav-item i{font-size:15px}
 .nav-item.active{color:var(--blue);border-bottom-color:var(--blue)}
-.nav-logout{margin-left:auto;padding:13px 10px;cursor:pointer;color:#94a3b8;display:flex;align-items:center;gap:4px;font-size:12px}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:4px;padding:0 8px}
+.nav-user{font-size:12px;color:#64748b;display:flex;align-items:center;gap:4px}
+.nav-logout{padding:8px 10px;cursor:pointer;color:#94a3b8;display:flex;align-items:center;gap:4px;font-size:12px;border:var(--bd);border-radius:var(--r);background:#f8fafc}
 .nav-logout:active{color:var(--red)}
 
 .wrap{max-width:900px;margin:0 auto;padding:12px 10px 40px}
@@ -69,6 +73,12 @@ nav{background:#fff;border-bottom:var(--bd);display:flex;padding:0 8px;position:
 .sec-hdr i{font-size:18px;color:var(--blue)}
 .sec-hdr h2{font-size:15px;font-weight:500}
 .sec-hdr.warn i,.sec-hdr.warn h2{color:var(--amber)}
+
+/* SYNC STATUS */
+.sync-bar{display:flex;align-items:center;gap:6px;font-size:11px;padding:6px 10px;border-radius:var(--r);margin-bottom:10px}
+.sync-ok{background:var(--green50);color:var(--green800)}
+.sync-err{background:var(--red50);color:var(--red)}
+.sync-loading{background:var(--blue50);color:var(--blue800)}
 
 /* GRID */
 .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
@@ -119,7 +129,7 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 .cbtn-blue{background:var(--blue);color:#fff}
 .cbtn-gray{background:#e2e8f0;color:#475569}
 
-/* ATTACH FILE */
+/* ATTACH */
 .attach-zone{border:2px dashed #cbd5e1;border-radius:var(--r);padding:14px;background:#f8fafc;margin-bottom:12px;cursor:pointer;transition:border-color .15s}
 .attach-zone:hover{border-color:var(--blue)}
 .attach-zone-inner{display:flex;align-items:center;gap:10px;color:#64748b;font-size:13px}
@@ -174,19 +184,18 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 
 .empty-state{background:#fff;border:var(--bd);border-radius:var(--rlg);padding:40px;text-align:center;color:#94a3b8}
 .empty-state i{font-size:36px;display:block;margin-bottom:8px}
-
-/* PDF PRINT */
-@media print{
-  #loginPage,nav,.filter-card,.list-meta,.btn-group,button{display:none!important}
-  .wrap{padding:0;max-width:100%}
-  .ic{break-inside:avoid}
-}
 </style>
 </head>
 <body>
 
-<!-- ══════════════════ LOGIN ══════════════════ -->
-<div id="loginPage">
+<!-- LOADING -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <p id="loadingMsg">กำลังโหลด...</p>
+</div>
+
+<!-- LOGIN -->
+<div id="loginPage" style="display:none">
   <div class="login-box" id="loginBox">
     <div class="login-logo">
       <i class="ti ti-shield-check"></i>
@@ -202,12 +211,15 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
   </div>
 </div>
 
-<!-- ══════════════════ APP SHELL ══════════════════ -->
+<!-- APP -->
 <div id="appShell">
 <nav>
   <div class="nav-item active" id="nav-form" onclick="gotoPage('formPage')"><i class="ti ti-plus"></i> เพิ่มรายการ</div>
   <div class="nav-item" id="nav-list" onclick="gotoPage('listPage')"><i class="ti ti-list"></i> รายการทั้งหมด</div>
-  <div class="nav-logout" onclick="doLogout()"><i class="ti ti-logout"></i> ออก</div>
+  <div class="nav-right">
+    <span class="nav-user"><i class="ti ti-user" style="font-size:13px"></i> <span id="navUser"></span></span>
+    <button class="nav-logout" onclick="doLogout()"><i class="ti ti-logout"></i> ออก</button>
+  </div>
 </nav>
 
 <div class="wrap">
@@ -216,11 +228,10 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 <div id="formPage" class="page active">
 <div class="card">
   <div class="sec-hdr"><i class="ti ti-file-plus"></i><h2>บันทึกรายการใหม่</h2></div>
+  <div id="addSyncBar" class="sync-bar" style="display:none"></div>
   <form id="addForm" onsubmit="submitAdd(event)">
     <input type="hidden" id="addImgB_data">
     <input type="hidden" id="addImgA_data">
-    <input type="hidden" id="addAttachData">
-
     <div class="g4">
       <div>
         <label>วันที่เกิดปัญหา (ค.ศ.)</label>
@@ -236,7 +247,6 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       <div><label>Line</label><select id="addLine" disabled required><option value="">-- เลือก --</option></select></div>
       <div><label>Process</label><input type="text" id="addProcess" placeholder="เช่น SMT, Assy" required></div>
     </div>
-
     <div class="g1">
       <label>PIC (ผู้รับผิดชอบ)</label>
       <div class="pic-wrap">
@@ -245,13 +255,11 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
         <div class="pic-dd" id="addPICDrop"></div>
       </div>
     </div>
-
     <div class="g2">
       <div><label>อาการเสีย (Issue)</label><textarea class="ta-issue" id="addIssue" rows="3" placeholder="ระบุอาการเสีย..." required></textarea></div>
       <div><label>สาเหตุ (Cause)</label><textarea class="ta-cause" id="addCause" rows="3" placeholder="ระบุสาเหตุ..."></textarea></div>
     </div>
     <div class="g1"><label>การแก้ไข (CM)</label><textarea class="ta-cm" id="addCM" rows="3" placeholder="ระบุวิธีแก้ไข..." required></textarea></div>
-
     <div class="g2">
       <div><label>Status</label>
         <select id="addStatus" onchange="onStatusChange('addStatus','addLbl','addWarn','addDue')">
@@ -261,7 +269,6 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       <div><label id="addLbl">Due Date</label><input type="date" id="addDue" required></div>
     </div>
     <div id="addWarn" class="warn-box"><i class="ti ti-camera"></i>&nbsp; ต้องแนบรูป Before &amp; After เมื่อสถานะเป็น Finish</div>
-
     <div class="photo-grid">
       <div class="photo-box">
         <span class="fl">📷 Before</span>
@@ -284,12 +291,10 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
         </div>
       </div>
     </div>
-
-    <!-- ATTACH FILE -->
     <div class="g1">
-      <label>📎 แนบไฟล์เพิ่มเติม (PDF, Excel, Word ฯลฯ)</label>
+      <label>📎 แนบไฟล์เพิ่มเติม</label>
       <div class="attach-zone" onclick="document.getElementById('addAttachInput').click()">
-        <input type="file" id="addAttachInput" multiple style="display:none" onchange="handleAttach(this,'addAttachList','addAttachData')">
+        <input type="file" id="addAttachInput" multiple style="display:none" onchange="handleAttach(this,'addAttachList','add')">
         <div class="attach-zone-inner">
           <i class="ti ti-paperclip"></i>
           <div>
@@ -300,8 +305,7 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       </div>
       <div class="attach-list" id="addAttachList"></div>
     </div>
-
-    <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy"></i>&nbsp; บันทึกรายการ</button>
+    <button type="submit" class="btn btn-primary" id="addSubmitBtn"><i class="ti ti-device-floppy"></i>&nbsp; บันทึกรายการ</button>
   </form>
 </div>
 </div>
@@ -310,12 +314,12 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 <div id="editPage" class="page">
 <div class="card" style="border-top:3px solid var(--amber400)">
   <div class="sec-hdr warn"><i class="ti ti-edit"></i><h2>แก้ไขข้อมูล</h2></div>
+  <div id="editSyncBar" class="sync-bar" style="display:none"></div>
   <form id="editForm" onsubmit="submitEdit(event)">
     <input type="hidden" id="editIdx">
+    <input type="hidden" id="editCreatedAt">
     <input type="hidden" id="editImgB_data">
     <input type="hidden" id="editImgA_data">
-    <input type="hidden" id="editAttachData">
-
     <div class="g4">
       <div>
         <label>วันที่เกิดปัญหา (ค.ศ.)</label>
@@ -330,7 +334,6 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       <div><label>Line</label><select id="editLine"></select></div>
       <div><label>Process</label><input type="text" id="editProcess"></div>
     </div>
-
     <div class="g1">
       <label>PIC</label>
       <div class="pic-wrap">
@@ -339,13 +342,11 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
         <div class="pic-dd" id="editPICDrop"></div>
       </div>
     </div>
-
     <div class="g2">
       <div><label>อาการเสีย</label><textarea class="ta-issue" id="editIssue" rows="3"></textarea></div>
       <div><label>สาเหตุ</label><textarea class="ta-cause" id="editCause" rows="3"></textarea></div>
     </div>
     <div class="g1"><label>การแก้ไข (CM)</label><textarea class="ta-cm" id="editCM" rows="3"></textarea></div>
-
     <div class="g2">
       <div><label>Status</label>
         <select id="editStatus" onchange="onStatusChange('editStatus','editLbl','editWarn','editDue')">
@@ -355,7 +356,6 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       <div><label id="editLbl">Due Date</label><input type="date" id="editDue" required></div>
     </div>
     <div id="editWarn" class="warn-box"><i class="ti ti-camera"></i>&nbsp; ต้องแนบรูป Before &amp; After เมื่อสถานะเป็น Finish</div>
-
     <div class="photo-grid">
       <div class="photo-box">
         <span class="fl">📷 Before</span>
@@ -378,11 +378,10 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
         </div>
       </div>
     </div>
-
     <div class="g1">
       <label>📎 แนบไฟล์เพิ่มเติม</label>
       <div class="attach-zone" onclick="document.getElementById('editAttachInput').click()">
-        <input type="file" id="editAttachInput" multiple style="display:none" onchange="handleAttach(this,'editAttachList','editAttachData')">
+        <input type="file" id="editAttachInput" multiple style="display:none" onchange="handleAttach(this,'editAttachList','edit')">
         <div class="attach-zone-inner">
           <i class="ti ti-paperclip"></i>
           <div>
@@ -393,9 +392,8 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       </div>
       <div class="attach-list" id="editAttachList"></div>
     </div>
-
     <div class="btn-group">
-      <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy"></i> อัปเดต</button>
+      <button type="submit" class="btn btn-primary" id="editSubmitBtn"><i class="ti ti-device-floppy"></i> อัปเดต</button>
       <button type="button" class="btn btn-sec" onclick="gotoPage('listPage')"><i class="ti ti-x"></i> ปิด</button>
       <button type="button" class="btn btn-danger" onclick="deleteItem()"><i class="ti ti-trash"></i> ลบ</button>
     </div>
@@ -411,7 +409,6 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
     <div class="stat-box s-onplan"><div class="stat-val" id="stOnPlan">0</div><div class="stat-lbl">On Plan</div></div>
     <div class="stat-box s-delay"><div class="stat-val" id="stDelay">0</div><div class="stat-lbl">Delay</div></div>
   </div>
-
   <div class="filter-card">
     <div class="filter-grid">
       <div><label>Model</label><select id="fModel" onchange="updateLineFilter();renderList()"><option value="All">ทั้งหมด</option></select></div>
@@ -422,24 +419,30 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
     </div>
     <input type="search" id="fSearch" placeholder="🔍  ค้นหา Line, ปัญหา, PIC..." oninput="renderList()" style="width:100%;padding:10px 12px;border:var(--bd);border-radius:var(--r);font-size:14px;font-family:inherit">
   </div>
-
   <div class="list-meta">
     <span style="font-size:12px;color:#64748b" id="tableCount">0 รายการ</span>
-    <button class="btn btn-green" style="min-height:36px;padding:7px 14px;font-size:13px" onclick="exportPDF()">
-      <i class="ti ti-file-type-pdf"></i> Export PDF
-    </button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sec" style="min-height:36px;padding:7px 12px;font-size:13px" onclick="loadFromSheet()">
+        <i class="ti ti-refresh"></i> Sync
+      </button>
+      <button class="btn btn-green" style="min-height:36px;padding:7px 14px;font-size:13px" onclick="exportPDF()">
+        <i class="ti ti-file-type-pdf"></i> Export PDF
+      </button>
+    </div>
   </div>
-
   <div id="listBody"></div>
 </div>
 
-</div><!-- end .wrap -->
-</div><!-- end #appShell -->
+</div>
+</div>
 
 <script>
-// ══ CONFIG ══
-const PASSWORD = 'Chassispe';
-const SHEET_API = 'https://script.google.com/macros/s/AKfycbwkRS5NZxy-VIbuIGi_pxSlvC7ImEL4Nrf_dW9hO-1pBI0DFemiG3NMRLZ80ckkfe5p/exec'; // ← วาง URL ที่ได้
+// ══════════════════════════════════════════
+//  CONFIG — แก้ค่านี้ให้ตรงกับของคุณ
+// ══════════════════════════════════════════
+const PASSWORD  = 'Chassispe';
+const SHEET_API = 'https://script.google.com/macros/s/AKfycbwkRS5NZxy-VIbuIGi_pxSlvC7ImEL4Nrf_dW9hO-1pBI0DFemiG3NMRLZ80ckkfe5p/exec';
+
 const PIC_LIST = ['Nontasit','Tanapop','Worawich','Witsarut','Kitsana','Chawinthorn','Theerawat','Nattakit'];
 const LINE_MAP = {
   "A3&V3P":["AS184","AS183"],
@@ -450,10 +453,12 @@ const LINE_MAP = {
   "V3.5R":["AS214"]
 };
 
+// ══ STATE ══
 let db = JSON.parse(localStorage.getItem('cm_v19')) || [];
 let addAttachFiles = [];
 let editAttachFiles = [];
 
+// ══ UTILS ══
 function save(){ localStorage.setItem('cm_v19', JSON.stringify(db)); }
 function todayStr(){ return new Date().toISOString().split('T')[0]; }
 function nowStr(){
@@ -462,17 +467,73 @@ function nowStr(){
 }
 function p2(n){ return String(n).padStart(2,'0'); }
 
+function showLoading(msg='กำลังโหลด...'){
+  document.getElementById('loadingOverlay').classList.remove('hide');
+  document.getElementById('loadingMsg').textContent=msg;
+}
+function hideLoading(){ document.getElementById('loadingOverlay').classList.add('hide'); }
+
+function showSync(barId, type, msg){
+  const el=document.getElementById(barId);
+  el.style.display='flex';
+  el.className='sync-bar sync-'+type;
+  el.innerHTML=`<i class="ti ti-${type==='ok'?'circle-check':type==='err'?'alert-circle':'loader-2'}"></i> ${msg}`;
+  if(type==='ok'||type==='err') setTimeout(()=>el.style.display='none', 3000);
+}
+
+// ══ SHEET API ══
+async function apiCall(payload){
+  try{
+    const res = await fetch(SHEET_API, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    return { success: true };
+  } catch(e){
+    console.error('API Error:',e);
+    return { error: e.message };
+  }
+}
+
+async function loadFromSheet(){
+  showSync('','loading','');
+  showLoading('กำลังโหลดข้อมูลจาก Google Sheet...');
+  try{
+    const res = await fetch(SHEET_API + '?action=getAll');
+    const json = await res.json();
+    if(json.records && Array.isArray(json.records)){
+      db = json.records.map(r => ({
+        ...r,
+        attachFiles: typeof r.attachFiles === 'string' ? 
+          (r.attachFiles ? JSON.parse(r.attachFiles) : []) : (r.attachFiles || [])
+      }));
+      save();
+      hideLoading();
+      if(document.getElementById('listPage').classList.contains('active')){
+        initFilters(); renderList();
+      }
+      return true;
+    }
+  } catch(e){
+    console.warn('Sheet load failed, using local data:', e);
+  }
+  hideLoading();
+  return false;
+}
+
 // ══ LOGIN ══
 function doLogin(){
   const v = document.getElementById('loginPwd').value;
   if(v === PASSWORD){
     document.getElementById('loginPage').style.display='none';
     document.getElementById('appShell').style.display='block';
+    document.getElementById('navUser').textContent='User';
     initApp();
   } else {
-    const err=document.getElementById('loginErr');
     const box=document.getElementById('loginBox');
-    err.textContent='รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่';
+    document.getElementById('loginErr').textContent='รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่';
     box.classList.remove('login-shake');
     void box.offsetWidth;
     box.classList.add('login-shake');
@@ -488,30 +549,30 @@ function doLogout(){
     document.getElementById('loginErr').textContent='';
   }
 }
-function initApp(){
-  const t = todayStr();
-  document.getElementById('addDate').value = t;
-  document.getElementById('addDate').setAttribute('max', t);
-  document.getElementById('addDue').value = t;
-  document.getElementById('addDue').setAttribute('min', t);
+
+async function initApp(){
+  const t=todayStr();
+  document.getElementById('addDate').value=t;
+  document.getElementById('addDate').setAttribute('max',t);
+  document.getElementById('addDue').value=t;
+  document.getElementById('addDue').setAttribute('min',t);
+  await loadFromSheet();
+  gotoPage('listPage');
 }
 
-// ══ DATE BLOCKING ══
-function blockFutureDate(el){
-  const today = todayStr();
-  if(el.value > today) el.value = today;
-}
+// ══ DATE ══
+function blockFutureDate(el){ if(el.value>todayStr()) el.value=todayStr(); }
 function onAddDate(){
-  const d = document.getElementById('addDate').value;
-  const dueEl = document.getElementById('addDue');
-  dueEl.setAttribute('min', d);
-  if(dueEl.value && dueEl.value < d) dueEl.value = d;
+  const d=document.getElementById('addDate').value;
+  const due=document.getElementById('addDue');
+  due.setAttribute('min',d);
+  if(due.value && due.value<d) due.value=d;
 }
 function onEditDate(){
-  const d = document.getElementById('editDate').value;
-  const dueEl = document.getElementById('editDue');
-  dueEl.setAttribute('min', d);
-  if(dueEl.value && dueEl.value < d) dueEl.value = d;
+  const d=document.getElementById('editDate').value;
+  const due=document.getElementById('editDue');
+  due.setAttribute('min',d);
+  if(due.value && due.value<d) due.value=d;
 }
 
 // ══ NAVIGATION ══
@@ -528,92 +589,84 @@ function gotoPage(p){
 function fillLines(mId,lId,sel=''){
   const m=document.getElementById(mId).value, l=document.getElementById(lId);
   l.innerHTML='<option value="">-- เลือก --</option>';
-  if(m && LINE_MAP[m]){
-    l.disabled=false;
-    LINE_MAP[m].forEach(x=>{ const o=new Option(x,x); if(x===sel) o.selected=true; l.add(o); });
-  }
+  if(m&&LINE_MAP[m]){ l.disabled=false; LINE_MAP[m].forEach(x=>{ const o=new Option(x,x); if(x===sel)o.selected=true; l.add(o); }); }
 }
 
 // ══ STATUS ══
 function getStatus(r){
   if(r.status==='Finish') return 'Finish';
-  return r.due >= todayStr() ? 'On Plan' : 'Delay';
+  return r.due>=todayStr()?'On Plan':'Delay';
 }
 function onStatusChange(sId,lblId,warnId,dueId){
-  const isF = document.getElementById(sId).value==='Finish';
-  document.getElementById(lblId).textContent = isF ? 'วันที่ทำเสร็จ' : 'Due Date';
-  document.getElementById(warnId).classList.toggle('show', isF);
-  const dEl = document.getElementById(dueId);
-  if(isF){
-    dEl.setAttribute('max', todayStr());
-    if(dEl.value > todayStr()) dEl.value = todayStr();
-  } else {
-    dEl.removeAttribute('max');
-  }
+  const isF=document.getElementById(sId).value==='Finish';
+  document.getElementById(lblId).textContent=isF?'วันที่ทำเสร็จ':'Due Date';
+  document.getElementById(warnId).classList.toggle('show',isF);
+  const dEl=document.getElementById(dueId);
+  if(isF){ dEl.setAttribute('max',todayStr()); if(dEl.value>todayStr()) dEl.value=todayStr(); }
+  else { dEl.removeAttribute('max'); }
 }
 
 // ══ IMAGE ══
-function previewImg(input, hId, thumbId){
+function previewImg(input,hId,thumbId){
   if(!input.files[0]) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const MAX = 800; let w=img.width, h=img.height;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const MAX=800; let w=img.width,h=img.height;
       if(w>MAX||h>MAX){ if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;} }
       canvas.width=w; canvas.height=h;
       canvas.getContext('2d').drawImage(img,0,0,w,h);
-      const comp = canvas.toDataURL('image/jpeg',0.75);
-      document.getElementById(hId).value = comp;
-      document.getElementById(thumbId).innerHTML = `<img src="${comp}">`;
+      const comp=canvas.toDataURL('image/jpeg',0.75);
+      document.getElementById(hId).value=comp;
+      document.getElementById(thumbId).innerHTML=`<img src="${comp}">`;
     };
-    img.src = e.target.result;
+    img.src=e.target.result;
   };
   reader.readAsDataURL(input.files[0]);
 }
 
-// ══ ATTACH FILES ══
-function handleAttach(input, listId, dataId){
-  const files = Array.from(input.files);
-  const target = listId.startsWith('add') ? addAttachFiles : editAttachFiles;
-  files.forEach(f => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      target.push({ name: f.name, size: f.size, data: e.target.result, type: f.type });
-      renderAttachList(listId, dataId, target);
+// ══ ATTACH ══
+function handleAttach(input,listId,prefix){
+  const files=Array.from(input.files);
+  const target=prefix==='add'?addAttachFiles:editAttachFiles;
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      target.push({name:f.name,size:f.size,type:f.type,data:e.target.result});
+      renderAttachList(listId,prefix,target);
     };
     reader.readAsDataURL(f);
   });
-  input.value = '';
+  input.value='';
 }
-function renderAttachList(listId, dataId, arr){
-  document.getElementById(dataId).value = JSON.stringify(arr.map(f=>({name:f.name,size:f.size,type:f.type})));
-  const el = document.getElementById(listId);
+function renderAttachList(listId,prefix,arr){
+  const el=document.getElementById(listId);
   if(!arr.length){ el.innerHTML=''; return; }
-  el.innerHTML = arr.map((f,i)=>{
-    const ext = f.name.split('.').pop().toLowerCase();
-    const icon = ext==='pdf'?'ti-file-type-pdf':ext==='xlsx'||ext==='xls'?'ti-file-type-xls':ext==='docx'||ext==='doc'?'ti-file-type-doc':'ti-file';
-    const sz = f.size>1024*1024 ? (f.size/1024/1024).toFixed(1)+' MB' : (f.size/1024).toFixed(0)+' KB';
+  el.innerHTML=arr.map((f,i)=>{
+    const ext=f.name.split('.').pop().toLowerCase();
+    const icon=ext==='pdf'?'ti-file-type-pdf':ext==='xlsx'||ext==='xls'?'ti-file-type-xls':ext==='docx'||ext==='doc'?'ti-file-type-doc':'ti-file';
+    const sz=f.size>1024*1024?(f.size/1024/1024).toFixed(1)+' MB':(f.size/1024).toFixed(0)+' KB';
     return `<div class="attach-item">
       <i class="ti ${icon}"></i>
       <span class="aname">${f.name}</span>
       <span class="asize">${sz}</span>
-      <i class="ti ti-x adel" onclick="removeAttach(${i},'${listId}','${dataId}')"></i>
+      <i class="ti ti-x adel" onclick="removeAttach(${i},'${listId}','${prefix}')"></i>
     </div>`;
   }).join('');
 }
-function removeAttach(i, listId, dataId){
-  const arr = listId.startsWith('add') ? addAttachFiles : editAttachFiles;
+function removeAttach(i,listId,prefix){
+  const arr=prefix==='add'?addAttachFiles:editAttachFiles;
   arr.splice(i,1);
-  renderAttachList(listId, dataId, arr);
+  renderAttachList(listId,prefix,arr);
 }
 
 // ══ PIC DROPDOWN ══
-function buildDrop(ddId, val){
-  document.getElementById(ddId).innerHTML = PIC_LIST
-    .filter(p => p.toLowerCase().includes(val.toLowerCase()))
-    .map(p => `<div class="pic-opt" ontouchstart="pickPIC(event,'${ddId}','${p}')" onmousedown="pickPIC(event,'${ddId}','${p}')">${p}</div>`)
+function buildDrop(ddId,val){
+  document.getElementById(ddId).innerHTML=PIC_LIST
+    .filter(p=>p.toLowerCase().includes(val.toLowerCase()))
+    .map(p=>`<div class="pic-opt" ontouchstart="pickPIC(event,'${ddId}','${p}')" onmousedown="pickPIC(event,'${ddId}','${p}')">${p}</div>`)
     .join('');
 }
 function filterPIC(inpId,ddId){ buildDrop(ddId,document.getElementById(inpId).value); document.getElementById(ddId).classList.add('open'); }
@@ -621,7 +674,7 @@ function openDrop(ddId){ buildDrop(ddId,''); document.getElementById(ddId).class
 function closeDrop(ddId){ setTimeout(()=>document.getElementById(ddId).classList.remove('open'),200); }
 function pickPIC(e,ddId,name){
   e.preventDefault();
-  document.getElementById(ddId==='addPICDrop'?'addPIC':'editPIC').value = name;
+  document.getElementById(ddId==='addPICDrop'?'addPIC':'editPIC').value=name;
   document.getElementById(ddId).classList.remove('open');
 }
 
@@ -662,7 +715,6 @@ function renderList(){
   document.getElementById('stOnPlan').textContent=onp;
   document.getElementById('stDelay').textContent=del;
   document.getElementById('tableCount').textContent=`${filtered.length} รายการ`;
-
   if(!filtered.length){
     document.getElementById('listBody').innerHTML=`<div class="empty-state"><i class="ti ti-database-off"></i>ไม่มีข้อมูล</div>`;
     return;
@@ -712,6 +764,7 @@ function renderList(){
 function loadEdit(i){
   const r=db[i];
   document.getElementById('editIdx').value=i;
+  document.getElementById('editCreatedAt').value=r.createdAt||'';
   document.getElementById('editDate').value=r.date||'';
   document.getElementById('editDate').setAttribute('max',todayStr());
   document.getElementById('editModel').value=r.model||'';
@@ -728,25 +781,39 @@ function loadEdit(i){
   document.getElementById('editImgA_data').value=r.imgA||'';
   document.getElementById('prevB').innerHTML=r.imgB?`<img src="${r.imgB}">`:'<i class="ti ti-photo" style="font-size:30px"></i>';
   document.getElementById('prevA').innerHTML=r.imgA?`<img src="${r.imgA}">`:'<i class="ti ti-photo" style="font-size:30px"></i>';
-  editAttachFiles = r.attachFiles ? [...r.attachFiles] : [];
-  renderAttachList('editAttachList','editAttachData', editAttachFiles);
+  editAttachFiles=Array.isArray(r.attachFiles)?[...r.attachFiles]:[];
+  renderAttachList('editAttachList','edit',editAttachFiles);
   onStatusChange('editStatus','editLbl','editWarn','editDue');
   gotoPage('editPage');
 }
 
-function deleteItem(){
-  if(confirm('ลบรายการนี้?')){ db.splice(+document.getElementById('editIdx').value,1); save(); gotoPage('listPage'); }
+// ══ DELETE ══
+async function deleteItem(){
+  if(!confirm('ลบรายการนี้?')) return;
+  const i=+document.getElementById('editIdx').value;
+  const item=db[i];
+  db.splice(i,1);
+  save();
+  gotoPage('listPage');
+  // sync to sheet
+  await apiCall({ action:'delete', id: item.createdAt });
 }
 
 // ══ SUBMIT ADD ══
-function submitAdd(e){
+async function submitAdd(e){
   e.preventDefault();
   const status=document.getElementById('addStatus').value;
   const imgB=document.getElementById('addImgB_data').value;
   const imgA=document.getElementById('addImgA_data').value;
   if(status==='Finish'&&(!imgB||!imgA)) return alert('กรุณาแนบรูป Before และ After');
-  const date=document.getElementById('addDate').value, due=document.getElementById('addDue').value;
-  db.unshift({
+  const date=document.getElementById('addDate').value;
+  const due=document.getElementById('addDue').value;
+
+  const btn=document.getElementById('addSubmitBtn');
+  btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2"></i> กำลังบันทึก...';
+  showSync('addSyncBar','loading','กำลังบันทึกข้อมูล...');
+
+  const newItem={
     date, model:document.getElementById('addModel').value,
     line:document.getElementById('addLine').value,
     process:document.getElementById('addProcess').value,
@@ -757,8 +824,24 @@ function submitAdd(e){
     status, due, imgB, imgA,
     attachFiles: addAttachFiles.map(f=>({name:f.name,size:f.size,type:f.type})),
     createdAt:nowStr(), updatedAt:nowStr()
-  });
+  };
+
+  // บันทึก local ก่อน
+  db.unshift(newItem);
   save();
+
+  // sync to sheet
+  const result = await apiCall({ action:'add', data: newItem });
+
+  btn.disabled=false; btn.innerHTML='<i class="ti ti-device-floppy"></i>&nbsp; บันทึกรายการ';
+
+  if(result.success){
+    showSync('addSyncBar','ok','บันทึกลง Google Sheet แล้ว ✓');
+  } else {
+    showSync('addSyncBar','err','บันทึก Local แล้ว (Sheet sync ล้มเหลว)');
+  }
+
+  // reset form
   document.getElementById('addForm').reset();
   document.getElementById('addLine').disabled=true;
   document.getElementById('addLine').innerHTML='<option value="">-- เลือก --</option>';
@@ -777,48 +860,67 @@ function submitAdd(e){
 }
 
 // ══ SUBMIT EDIT ══
-function submitEdit(e){
+async function submitEdit(e){
   e.preventDefault();
   const i=+document.getElementById('editIdx').value;
   const status=document.getElementById('editStatus').value;
   const imgB=document.getElementById('editImgB_data').value;
   const imgA=document.getElementById('editImgA_data').value;
   if(status==='Finish'&&(!imgB||!imgA)) return alert('ต้องมีรูป Before และ After');
-  const date=document.getElementById('editDate').value, due=document.getElementById('editDue').value;
+
+  const btn=document.getElementById('editSubmitBtn');
+  btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2"></i> กำลังบันทึก...';
+  showSync('editSyncBar','loading','กำลังอัปเดตข้อมูล...');
+
   const orig=db[i];
-  db[i]={
-    date, model:document.getElementById('editModel').value,
+  const updated={
+    date:document.getElementById('editDate').value,
+    model:document.getElementById('editModel').value,
     line:document.getElementById('editLine').value,
     process:document.getElementById('editProcess').value,
     pic:document.getElementById('editPIC').value,
     issue:document.getElementById('editIssue').value,
     cause:document.getElementById('editCause').value,
     cm:document.getElementById('editCM').value,
-    status, due, imgB, imgA,
+    status, due:document.getElementById('editDue').value,
+    imgB, imgA,
     attachFiles: editAttachFiles.map(f=>({name:f.name,size:f.size,type:f.type})),
-    createdAt:orig.createdAt||date, updatedAt:nowStr()
+    createdAt:orig.createdAt||document.getElementById('editCreatedAt').value,
+    updatedAt:nowStr()
   };
-  save(); gotoPage('listPage');
+
+  db[i]=updated;
+  save();
+
+  const result = await apiCall({ action:'update', data: updated });
+
+  btn.disabled=false; btn.innerHTML='<i class="ti ti-device-floppy"></i> อัปเดต';
+
+  if(result.success){
+    showSync('editSyncBar','ok','อัปเดตลง Google Sheet แล้ว ✓');
+  } else {
+    showSync('editSyncBar','err','บันทึก Local แล้ว (Sheet sync ล้มเหลว)');
+  }
+
+  gotoPage('listPage');
 }
 
 // ══ EXPORT PDF ══
 function exportPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-  const now = new Date();
-  const dateStr = now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate());
-  const timeStr = p2(now.getHours())+':'+p2(now.getMinutes());
+  const now=new Date();
+  const dateStr=now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate());
+  const timeStr=p2(now.getHours())+':'+p2(now.getMinutes());
 
-  // ── Header ──
-  doc.setFillColor(24, 95, 165);
-  doc.rect(0, 0, 210, 22, 'F');
+  doc.setFillColor(24,95,165);
+  doc.rect(0,0,210,22,'F');
   doc.setTextColor(255,255,255);
   doc.setFontSize(14); doc.setFont('helvetica','bold');
-  doc.text('Countermeasure Report', 14, 10);
+  doc.text('Countermeasure Report',14,10);
   doc.setFontSize(8); doc.setFont('helvetica','normal');
-  doc.text(`Generated: ${dateStr} ${timeStr}`, 14, 16);
+  doc.text(`Generated: ${dateStr} ${timeStr}`,14,16);
 
-  // ── Stats summary ──
   const fm=document.getElementById('fModel').value, fl=document.getElementById('fLine').value;
   const fp=document.getElementById('fPIC').value, fs=document.getElementById('fStatus').value;
   const sq=document.getElementById('fSearch').value.toLowerCase();
@@ -831,77 +933,49 @@ function exportPDF(){
   filtered.forEach(r=>{ const s=getStatus(r); s==='Finish'?fin++:s==='On Plan'?onp++:del++; });
 
   let y=28;
-  // stat boxes
   const boxes=[
     {label:'Total',val:filtered.length,color:[30,41,59]},
     {label:'Finish',val:fin,color:[59,109,17]},
     {label:'On Plan',val:onp,color:[24,95,165]},
     {label:'Delay',val:del,color:[163,45,45]}
   ];
-  const bw=42, bh=14, gap=3, startX=14;
+  const bw=42,bh=14,gap=3,startX=14;
   boxes.forEach((b,i)=>{
     const x=startX+i*(bw+gap);
     doc.setFillColor(...b.color);
     doc.roundedRect(x,y,bw,bh,2,2,'F');
     doc.setTextColor(255,255,255);
     doc.setFontSize(16); doc.setFont('helvetica','bold');
-    doc.text(String(b.val), x+bw/2, y+8, {align:'center'});
+    doc.text(String(b.val),x+bw/2,y+8,{align:'center'});
     doc.setFontSize(7); doc.setFont('helvetica','normal');
-    doc.text(b.label, x+bw/2, y+12.5, {align:'center'});
+    doc.text(b.label,x+bw/2,y+12.5,{align:'center'});
   });
 
-  // filter info
-  doc.setTextColor(100,116,139);
-  doc.setFontSize(7);
-  const fInfo=`Filter: Model=${fm} | Line=${fl} | PIC=${fp} | Status=${fs}`;
-  doc.text(fInfo, 14, y+bh+5);
+  doc.setTextColor(100,116,139); doc.setFontSize(7);
+  doc.text(`Filter: Model=${fm} | Line=${fl} | PIC=${fp} | Status=${fs}`,14,y+bh+5);
+  y+=bh+12;
 
-  y += bh + 12;
+  doc.setTextColor(30,41,59); doc.setFontSize(10); doc.setFont('helvetica','bold');
+  doc.text('Countermeasure List',14,y); y+=4;
 
-  // ── Table ──
-  doc.setTextColor(30,41,59);
-  doc.setFontSize(10); doc.setFont('helvetica','bold');
-  doc.text('Countermeasure List', 14, y);
-  y += 4;
-
-  const rows = filtered.map((r,idx)=>[
-    idx+1,
-    r.date||'',
+  const rows=filtered.map((r,idx)=>[
+    idx+1, r.date||'',
     (r.line||'')+(r.process?'\n'+r.process:''),
-    r.model||'',
-    r.pic||'',
-    r.issue||'',
-    r.cause||'',
-    r.cm||'',
-    getStatus(r),
-    r.due||''
+    r.model||'', r.pic||'', r.issue||'', r.cause||'', r.cm||'',
+    getStatus(r), r.due||''
   ]);
 
   doc.autoTable({
-    startY: y,
+    startY:y,
     head:[['#','Date','Line/Process','Model','PIC','Issue','Cause','CM','Status','Due']],
-    body: rows,
-    theme: 'grid',
-    headStyles:{
-      fillColor:[24,95,165], textColor:255, fontStyle:'bold',
-      fontSize:7, halign:'center', valign:'middle', cellPadding:2
-    },
-    bodyStyles:{ fontSize:7, cellPadding:2, valign:'top', textColor:[30,41,59] },
-    columnStyles:{
-      0:{halign:'center',cellWidth:8},
-      1:{cellWidth:18},
-      2:{cellWidth:22},
-      3:{cellWidth:16},
-      4:{cellWidth:22},
-      5:{cellWidth:28},
-      6:{cellWidth:24},
-      7:{cellWidth:24},
-      8:{cellWidth:14,halign:'center'},
-      9:{cellWidth:18}
-    },
+    body:rows,
+    theme:'grid',
+    headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:7,halign:'center',valign:'middle',cellPadding:2},
+    bodyStyles:{fontSize:7,cellPadding:2,valign:'top',textColor:[30,41,59]},
+    columnStyles:{0:{halign:'center',cellWidth:8},1:{cellWidth:18},2:{cellWidth:22},3:{cellWidth:16},4:{cellWidth:22},5:{cellWidth:28},6:{cellWidth:24},7:{cellWidth:24},8:{cellWidth:14,halign:'center'},9:{cellWidth:18}},
     alternateRowStyles:{fillColor:[248,250,252]},
-    didParseCell: function(data){
-      if(data.section==='body' && data.column.index===8){
+    didParseCell:function(data){
+      if(data.section==='body'&&data.column.index===8){
         const v=data.cell.raw;
         if(v==='Finish') data.cell.styles.textColor=[59,109,17];
         else if(v==='On Plan') data.cell.styles.textColor=[24,95,165];
@@ -912,30 +986,24 @@ function exportPDF(){
     margin:{left:14,right:14},
     pageBreak:'auto',
     rowPageBreak:'avoid',
-    didDrawPage: function(data){
-      // Footer
+    didDrawPage:function(data){
       const pg=doc.internal.getCurrentPageInfo().pageNumber;
       const tot=doc.internal.getNumberOfPages();
       doc.setFontSize(7); doc.setTextColor(148,163,184);
-      doc.text(`CM System | Page ${pg} of ${tot}`, 105, 290, {align:'center'});
-      doc.text('CONFIDENTIAL', 196, 290, {align:'right'});
+      doc.text(`CM System | Page ${pg} of ${tot}`,105,290,{align:'center'});
+      doc.text('CONFIDENTIAL',196,290,{align:'right'});
     }
   });
 
-  // ── Per-item detail pages ──
   filtered.forEach((r,idx)=>{
-    if(!r.imgB && !r.imgA) return; // skip if no images
+    if(!r.imgB&&!r.imgA) return;
     doc.addPage();
-    // item header
     const st=getStatus(r);
-    doc.setFillColor(248,250,252);
-    doc.rect(0,0,210,297,'F');
-    doc.setFillColor(24,95,165);
-    doc.rect(0,0,210,18,'F');
+    doc.setFillColor(248,250,252); doc.rect(0,0,210,297,'F');
+    doc.setFillColor(24,95,165); doc.rect(0,0,210,18,'F');
     doc.setTextColor(255,255,255);
     doc.setFontSize(11); doc.setFont('helvetica','bold');
-    doc.text(`Item #${idx+1} — ${r.line||''}${r.process?' / '+r.process:''}`, 14, 11);
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
+    doc.text(`Item #${idx+1} — ${r.line||''}${r.process?' / '+r.process:''}`,14,11);
     const stColor=st==='Finish'?[59,109,17]:st==='On Plan'?[24,95,165]:[163,45,45];
     doc.setFillColor(...stColor);
     doc.roundedRect(168,5,28,9,2,2,'F');
@@ -953,26 +1021,23 @@ function exportPDF(){
       return y+4+lines.length*4;
     };
 
-    // row 1
     drawInfo('Date',r.date||'',14,dy,44);
     drawInfo('Model',r.model||'',60,dy,40);
     drawInfo('PIC',r.pic||'',102,dy,54);
     drawInfo('Due Date',r.due||'',158,dy,44);
     dy+=16;
-    // row 2
     const endIssue=drawInfo('Issue',r.issue||'',14,dy,90);
     const endCause=drawInfo('Cause',r.cause||'',106,dy,90);
     dy=Math.max(endIssue,endCause)+4;
     const endCM=drawInfo('Countermeasure (CM)',r.cm||'',14,dy,182);
     dy=endCM+6;
 
-    // images
     if(r.imgB||r.imgA){
       doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139);
       doc.text('BEFORE / AFTER PHOTOS',14,dy); dy+=4;
       doc.setDrawColor(226,232,240); doc.setLineWidth(0.3);
       doc.line(14,dy,196,dy); dy+=4;
-      const imgW=85, imgH=60;
+      const imgW=85,imgH=60;
       if(r.imgB){ try{ doc.addImage(r.imgB,'JPEG',14,dy,imgW,imgH); }catch(ex){} }
       if(r.imgA){ try{ doc.addImage(r.imgA,'JPEG',105,dy,imgW,imgH); }catch(ex){} }
       dy+=imgH+4;
@@ -980,14 +1045,19 @@ function exportPDF(){
       if(r.imgB) doc.text('Before',14+imgW/2,dy,{align:'center'});
       if(r.imgA) doc.text('After',105+imgW/2,dy,{align:'center'});
     }
-
-    // footer
     doc.setFontSize(7); doc.setTextColor(148,163,184);
-    doc.text(`CM System | Page ${doc.internal.getCurrentPageInfo().pageNumber}`, 105, 290, {align:'center'});
+    doc.text(`CM System | Page ${doc.internal.getCurrentPageInfo().pageNumber}`,105,290,{align:'center'});
   });
 
   doc.save(`CM_Report_${dateStr}.pdf`);
 }
+
+// ══ INIT ══
+window.onload = function(){
+  // แสดง login page
+  hideLoading();
+  document.getElementById('loginPage').style.display='flex';
+};
 </script>
 </body>
 </html>
