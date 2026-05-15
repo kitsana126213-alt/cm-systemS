@@ -150,14 +150,14 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 .exp-opt i{font-size:17px;flex-shrink:0}
 /* ── Mic button ── */
 .mic-wrap{position:relative;margin-bottom:4px}
-.mic-btn{position:absolute;bottom:8px;right:8px;width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;z-index:10;background:#e2e8f0;color:#475569}
+.mic-wrap textarea{padding-bottom:40px!important}
+.mic-toolbar{position:absolute;bottom:6px;right:6px;display:flex;align-items:center;gap:4px;z-index:10}
+.mic-lang{font-size:10px;padding:3px 8px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;font-family:inherit;height:26px;-webkit-appearance:none;appearance:none}
+.mic-lang:hover{border-color:#185FA5;color:#185FA5}
+.mic-btn{width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s;background:#e2e8f0;color:#475569;flex-shrink:0}
 .mic-btn:hover{background:#185FA5;color:#fff}
 .mic-btn.recording{background:#e24b4a;color:#fff;animation:pulse .8s ease-in-out infinite}
-.mic-btn.recording i{animation:none}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(226,75,74,.4)}50%{box-shadow:0 0 0 8px rgba(226,75,74,0)}}
-.mic-wrap textarea{padding-bottom:44px}
-.mic-lang{position:absolute;bottom:8px;right:48px;font-size:10px;padding:3px 7px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;font-family:inherit}
-.mic-lang:hover{border-color:#185FA5;color:#185FA5}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(226,75,74,.4)}50%{box-shadow:0 0 0 6px rgba(226,75,74,0)}}
 /* ── Responsive ── */
 @media(max-width:900px){.wrap{padding:10px 8px 40px}}
 @media(max-width:600px){
@@ -230,10 +230,10 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       </div>
     </div>
     <div class="g2">
-      <div><label>อาการเสีย (Issue)</label><div class="mic-wrap"><textarea class="ta-issue" id="addIssue" rows="3" placeholder="ระบุอาการเสีย..." required></textarea><select class="mic-lang" id="micLang_addIssue"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('addIssue')" id="micBtn_addIssue" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
-      <div><label>สาเหตุ (Cause)</label><div class="mic-wrap"><textarea class="ta-cause" id="addCause" rows="3" placeholder="ระบุสาเหตุ..."></textarea><select class="mic-lang" id="micLang_addCause"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('addCause')" id="micBtn_addCause" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
+      <div><label>อาการเสีย (Issue)</label><div class="mic-wrap"><textarea class="ta-issue" id="addIssue" rows="3" placeholder="ระบุอาการเสีย..." required></textarea><div class="mic-toolbar"><select class="mic-lang" id="micLang_addIssue"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('addIssue')" id="micBtn_addIssue" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div></div>
+      <div><label>สาเหตุ (Cause)</label><div class="mic-wrap"><textarea class="ta-cause" id="addCause" rows="3" placeholder="ระบุสาเหตุ..."></textarea><div class="mic-toolbar"><select class="mic-lang" id="micLang_addCause"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('addCause')" id="micBtn_addCause" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div></div>
     </div>
-    <div class="g1"><label>การแก้ไข (CM)</label><div class="mic-wrap"><textarea class="ta-cm" id="addCM" rows="3" placeholder="ระบุวิธีแก้ไข..." required></textarea><select class="mic-lang" id="micLang_addCM"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('addCM')" id="micBtn_addCM" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
+    <div class="g1"><label>การแก้ไข (CM)</label><div class="mic-wrap"><textarea class="ta-cm" id="addCM" rows="3" placeholder="ระบุวิธีแก้ไข..." required></textarea><div class="mic-toolbar"><select class="mic-lang" id="micLang_addCM"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('addCM')" id="micBtn_addCM" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div></div>
     <div class="g2">
       <div><label>Status</label>
         <select id="addStatus" onchange="onStatusChange('addStatus','addLbl','addWarn','addDue')">
@@ -298,10 +298,10 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       </div>
     </div>
     <div class="g2">
-      <div><label>อาการเสีย</label><div class="mic-wrap"><textarea class="ta-issue" id="editIssue" rows="3"></textarea><select class="mic-lang" id="micLang_editIssue"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('editIssue')" id="micBtn_editIssue" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
-      <div><label>สาเหตุ</label><div class="mic-wrap"><textarea class="ta-cause" id="editCause" rows="3"></textarea><select class="mic-lang" id="micLang_editCause"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('editCause')" id="micBtn_editCause" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
+      <div><label>อาการเสีย</label><div class="mic-wrap"><textarea class="ta-issue" id="editIssue" rows="3"></textarea><div class="mic-toolbar"><select class="mic-lang" id="micLang_editIssue"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('editIssue')" id="micBtn_editIssue" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div></div>
+      <div><label>สาเหตุ</label><div class="mic-wrap"><textarea class="ta-cause" id="editCause" rows="3"></textarea><div class="mic-toolbar"><select class="mic-lang" id="micLang_editCause"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('editCause')" id="micBtn_editCause" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div></div>
     </div>
-    <div class="g1"><label>การแก้ไข (CM)</label><div class="mic-wrap"><textarea class="ta-cm" id="editCM" rows="3"></textarea><select class="mic-lang" id="micLang_editCM"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('editCM')" id="micBtn_editCM" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
+    <div class="g1"><label>การแก้ไข (CM)</label><div class="mic-wrap"><textarea class="ta-cm" id="editCM" rows="3"></textarea><div class="mic-toolbar"><select class="mic-lang" id="micLang_editCM"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('editCM')" id="micBtn_editCM" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div></div>
     <div class="g2">
       <div><label>Status</label>
         <select id="editStatus" onchange="onStatusChange('editStatus','editLbl','editWarn','editDue')">
