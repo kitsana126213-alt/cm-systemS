@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="CM System">
 <title>CM System</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Sarabun',system-ui,sans-serif;background:#f1f5f9;color:#1e293b;font-size:14px;min-height:100vh}
@@ -98,8 +98,9 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 .attach-zone-inner i{font-size:24px;color:#94a3b8}
 .attach-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
 .attach-item{display:flex;align-items:center;gap:8px;background:#fff;border:var(--bd);border-radius:var(--r);padding:8px 10px;font-size:12px}
-.attach-item i{color:var(--blue);font-size:16px;flex-shrink:0}
+.attach-item .aicon{color:var(--blue);font-size:16px;flex-shrink:0}
 .attach-item .aname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#334155}
+.attach-item .aname.dl{color:var(--blue);cursor:pointer;text-decoration:underline dotted}
 .attach-item .asize{color:#94a3b8;font-size:11px;flex-shrink:0}
 .attach-item .adel{cursor:pointer;color:#ef4444;font-size:16px;flex-shrink:0;padding:2px}
 .stat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
@@ -139,26 +140,26 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 .ic-pdf{display:flex;align-items:center;padding:0 7px;color:#94a3b8;flex-shrink:0}
 .empty-state{background:#fff;border:var(--bd);border-radius:var(--rlg);padding:40px;text-align:center;color:#94a3b8}
 .empty-state i{font-size:36px;display:block;margin-bottom:8px}
+/* Export dropdown */
+.exp-wrap{position:relative;display:inline-block}
+.exp-dd{position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:var(--bd);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.13);min-width:190px;z-index:500;display:none;overflow:hidden}
+.exp-dd.open{display:block}
+.exp-opt{display:flex;align-items:center;gap:9px;padding:11px 14px;cursor:pointer;font-size:13px;font-weight:500;color:#334155;border-bottom:1px solid #f1f5f9}
+.exp-opt:last-child{border-bottom:none}
+.exp-opt:hover{background:var(--blue50);color:var(--blue)}
+.exp-opt i{font-size:17px;flex-shrink:0}
 </style>
 </head>
 <body>
 
-<div id="loadingOverlay">
-  <div class="spinner"></div>
-  <p id="loadingMsg">กำลังโหลด...</p>
-</div>
+<div id="loadingOverlay"><div class="spinner"></div><p id="loadingMsg">กำลังโหลด...</p></div>
 
 <div id="loginPage">
   <div class="login-box" id="loginBox">
-    <div class="login-logo">
-      <i class="ti ti-shield-check"></i>
-      <h1>CM System</h1>
-      <p>Countermeasure Management</p>
-    </div>
+    <div class="login-logo"><i class="ti ti-shield-check"></i><h1>CM System</h1><p>Countermeasure Management</p></div>
     <div class="login-field">
       <label>Password</label>
-      <input type="password" id="loginPwd" placeholder="••••••••••"
-        onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password">
+      <input type="password" id="loginPwd" placeholder="••••••••••" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password">
     </div>
     <button class="login-btn" onclick="doLogin()"><i class="ti ti-login"></i> เข้าสู่ระบบ</button>
     <div class="login-err" id="loginErr"></div>
@@ -169,9 +170,7 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 <nav>
   <div class="nav-item active" id="nav-form" onclick="gotoPage('formPage')"><i class="ti ti-plus"></i> เพิ่มรายการ</div>
   <div class="nav-item" id="nav-list" onclick="gotoPage('listPage')"><i class="ti ti-list"></i> รายการทั้งหมด</div>
-  <div class="nav-right">
-    <button class="nav-logout" onclick="doLogout()"><i class="ti ti-logout"></i> ออก</button>
-  </div>
+  <div class="nav-right"><button class="nav-logout" onclick="doLogout()"><i class="ti ti-logout"></i> ออก</button></div>
 </nav>
 
 <div class="wrap">
@@ -184,21 +183,18 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
   <form id="addForm" onsubmit="submitAdd(event)">
     <input type="hidden" id="addImgB_data"><input type="hidden" id="addImgA_data">
     <div class="g4">
-      <div><label>วันที่เกิดปัญหา (ค.ศ.)</label>
-        <input type="date" id="addDate" required onchange="onAddDate()" oninput="blockFutureDate(this)"></div>
+      <div><label>วันที่เกิดปัญหา (ค.ศ.)</label><input type="date" id="addDate" required onchange="onAddDate()" oninput="blockFutureDate(this)"></div>
       <div><label>Model Group</label>
         <select id="addModel" required onchange="fillLines('addModel','addLine')">
           <option value="">-- เลือก --</option>
-          <option>A3&amp;V3P</option><option>230W</option><option>300W</option>
-          <option>AHB-RX</option><option>AHB-G</option><option>V3.5R</option>
+          <option>A3&amp;V3P</option><option>230W</option><option>300W</option><option>AHB-RX</option><option>AHB-G</option><option>V3.5R</option>
         </select></div>
       <div><label>Line</label><select id="addLine" disabled required><option value="">-- เลือก --</option></select></div>
       <div><label>Process</label><input type="text" id="addProcess" placeholder="เช่น SMT, Assy" required></div>
     </div>
     <div class="g1"><label>PIC (ผู้รับผิดชอบ)</label>
       <div class="pic-wrap">
-        <input type="text" id="addPIC" placeholder="พิมพ์หรือแตะเลือกชื่อ..." autocomplete="off"
-          oninput="filterPIC('addPIC','addPICDrop')" onfocus="openDrop('addPICDrop')" onblur="closeDrop('addPICDrop')" required>
+        <input type="text" id="addPIC" placeholder="พิมพ์หรือแตะเลือกชื่อ..." autocomplete="off" oninput="filterPIC('addPIC','addPICDrop')" onfocus="openDrop('addPICDrop')" onblur="closeDrop('addPICDrop')" required>
         <div class="pic-dd" id="addPICDrop"></div>
       </div>
     </div>
@@ -216,8 +212,7 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
     </div>
     <div id="addWarn" class="warn-box"><i class="ti ti-camera"></i>&nbsp; ต้องแนบรูป Before &amp; After เมื่อสถานะเป็น Finish</div>
     <div class="photo-grid">
-      <div class="photo-box">
-        <span class="fl">📷 Before</span>
+      <div class="photo-box"><span class="fl">📷 Before</span>
         <div class="thumb" id="addThumbB"><i class="ti ti-photo" style="font-size:30px"></i></div>
         <div class="cam-row">
           <label class="cbtn cbtn-blue" for="addCamB"><i class="ti ti-camera" style="font-size:14px"></i> ถ่าย</label>
@@ -226,8 +221,7 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
           <input type="file" id="addFileB" accept="image/*" style="display:none" onchange="previewImg(this,'addImgB_data','addThumbB')">
         </div>
       </div>
-      <div class="photo-box">
-        <span class="fl">✅ After</span>
+      <div class="photo-box"><span class="fl">✅ After</span>
         <div class="thumb" id="addThumbA"><i class="ti ti-photo" style="font-size:30px"></i></div>
         <div class="cam-row">
           <label class="cbtn cbtn-blue" for="addCamA"><i class="ti ti-camera" style="font-size:14px"></i> ถ่าย</label>
@@ -240,10 +234,7 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
     <div class="g1"><label>📎 แนบไฟล์เพิ่มเติม</label>
       <div class="attach-zone" onclick="document.getElementById('addAttachInput').click()">
         <input type="file" id="addAttachInput" multiple style="display:none" onchange="handleAttach(this,'addAttachList','add')">
-        <div class="attach-zone-inner"><i class="ti ti-paperclip"></i>
-          <div><div style="font-weight:600;color:#334155">แตะเพื่อแนบไฟล์</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">รองรับทุกประเภทไฟล์</div></div>
-        </div>
+        <div class="attach-zone-inner"><i class="ti ti-paperclip"></i><div><div style="font-weight:600;color:#334155">แตะเพื่อแนบไฟล์</div><div style="font-size:11px;color:#94a3b8;margin-top:2px">รองรับทุกประเภทไฟล์</div></div></div>
       </div>
       <div class="attach-list" id="addAttachList"></div>
     </div>
@@ -261,20 +252,17 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
     <input type="hidden" id="editIdx"><input type="hidden" id="editCreatedAt">
     <input type="hidden" id="editImgB_data"><input type="hidden" id="editImgA_data">
     <div class="g4">
-      <div><label>วันที่เกิดปัญหา (ค.ศ.)</label>
-        <input type="date" id="editDate" required onchange="onEditDate()" oninput="blockFutureDate(this)"></div>
+      <div><label>วันที่เกิดปัญหา (ค.ศ.)</label><input type="date" id="editDate" required onchange="onEditDate()" oninput="blockFutureDate(this)"></div>
       <div><label>Model Group</label>
         <select id="editModel" onchange="fillLines('editModel','editLine')">
-          <option>A3&amp;V3P</option><option>230W</option><option>300W</option>
-          <option>AHB-RX</option><option>AHB-G</option><option>V3.5R</option>
+          <option>A3&amp;V3P</option><option>230W</option><option>300W</option><option>AHB-RX</option><option>AHB-G</option><option>V3.5R</option>
         </select></div>
       <div><label>Line</label><select id="editLine"></select></div>
       <div><label>Process</label><input type="text" id="editProcess"></div>
     </div>
     <div class="g1"><label>PIC</label>
       <div class="pic-wrap">
-        <input type="text" id="editPIC" placeholder="พิมพ์หรือแตะเลือกชื่อ..." autocomplete="off"
-          oninput="filterPIC('editPIC','editPICDrop')" onfocus="openDrop('editPICDrop')" onblur="closeDrop('editPICDrop')" required>
+        <input type="text" id="editPIC" placeholder="พิมพ์หรือแตะเลือกชื่อ..." autocomplete="off" oninput="filterPIC('editPIC','editPICDrop')" onfocus="openDrop('editPICDrop')" onblur="closeDrop('editPICDrop')" required>
         <div class="pic-dd" id="editPICDrop"></div>
       </div>
     </div>
@@ -292,8 +280,7 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
     </div>
     <div id="editWarn" class="warn-box"><i class="ti ti-camera"></i>&nbsp; ต้องแนบรูป Before &amp; After เมื่อสถานะเป็น Finish</div>
     <div class="photo-grid">
-      <div class="photo-box">
-        <span class="fl">📷 Before</span>
+      <div class="photo-box"><span class="fl">📷 Before</span>
         <div class="thumb" id="prevB"><i class="ti ti-photo" style="font-size:30px"></i></div>
         <div class="cam-row">
           <label class="cbtn cbtn-blue" for="editCamB"><i class="ti ti-camera" style="font-size:14px"></i> ถ่าย</label>
@@ -302,8 +289,7 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
           <input type="file" id="editFileB" accept="image/*" style="display:none" onchange="previewImg(this,'editImgB_data','prevB')">
         </div>
       </div>
-      <div class="photo-box">
-        <span class="fl">✅ After</span>
+      <div class="photo-box"><span class="fl">✅ After</span>
         <div class="thumb" id="prevA"><i class="ti ti-photo" style="font-size:30px"></i></div>
         <div class="cam-row">
           <label class="cbtn cbtn-blue" for="editCamA"><i class="ti ti-camera" style="font-size:14px"></i> ถ่าย</label>
@@ -316,15 +302,20 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
     <div class="g1"><label>📎 แนบไฟล์เพิ่มเติม</label>
       <div class="attach-zone" onclick="document.getElementById('editAttachInput').click()">
         <input type="file" id="editAttachInput" multiple style="display:none" onchange="handleAttach(this,'editAttachList','edit')">
-        <div class="attach-zone-inner"><i class="ti ti-paperclip"></i>
-          <div><div style="font-weight:600;color:#334155">แตะเพื่อแนบไฟล์</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">รองรับทุกประเภทไฟล์</div></div>
-        </div>
+        <div class="attach-zone-inner"><i class="ti ti-paperclip"></i><div><div style="font-weight:600;color:#334155">แตะเพื่อแนบไฟล์</div><div style="font-size:11px;color:#94a3b8;margin-top:2px">รองรับทุกประเภทไฟล์</div></div></div>
       </div>
       <div class="attach-list" id="editAttachList"></div>
     </div>
     <div class="btn-group">
       <button type="submit" class="btn btn-primary" id="editSubmitBtn"><i class="ti ti-device-floppy"></i> อัปเดต</button>
+      <!-- Export dropdown บนหน้า edit -->
+      <div class="exp-wrap">
+        <button type="button" class="btn btn-green" onclick="toggleDd('editExpDd')"><i class="ti ti-download"></i> Export <i class="ti ti-chevron-down" style="font-size:11px"></i></button>
+        <div class="exp-dd" id="editExpDd">
+          <div class="exp-opt" onclick="exportOnePDF()"><i class="ti ti-file-type-pdf" style="color:#e24b4a"></i> PDF รายการนี้</div>
+          <div class="exp-opt" onclick="exportOneXLSX()"><i class="ti ti-file-type-xls" style="color:#16a34a"></i> Excel รายการนี้</div>
+        </div>
+      </div>
       <button type="button" class="btn btn-sec" onclick="gotoPage('listPage')"><i class="ti ti-x"></i> ปิด</button>
       <button type="button" class="btn btn-danger" onclick="deleteItem()"><i class="ti ti-trash"></i> ลบ</button>
     </div>
@@ -348,18 +339,19 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       <div><label>Status</label><select id="fStatus" onchange="renderList()"><option value="All">ทั้งหมด</option><option>Finish</option><option>On Plan</option><option>Delay</option></select></div>
       <div style="display:flex;align-items:flex-end"><button class="btn btn-sec" onclick="resetFilters()" style="width:100%"><i class="ti ti-filter-off"></i> ล้าง</button></div>
     </div>
-    <input type="search" id="fSearch" placeholder="🔍  ค้นหา Line, ปัญหา, PIC..." oninput="renderList()"
-      style="width:100%;padding:10px 12px;border:var(--bd);border-radius:var(--r);font-size:14px;font-family:inherit">
+    <input type="search" id="fSearch" placeholder="🔍  ค้นหา Line, ปัญหา, PIC..." oninput="renderList()" style="width:100%;padding:10px 12px;border:var(--bd);border-radius:var(--r);font-size:14px;font-family:inherit">
   </div>
   <div class="list-meta">
     <span style="font-size:12px;color:#64748b" id="tableCount">0 รายการ</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-sec" style="min-height:36px;padding:7px 12px;font-size:13px" onclick="syncFromSheet()">
-        <i class="ti ti-refresh"></i> Sync
-      </button>
-      <button class="btn btn-green" style="min-height:36px;padding:7px 14px;font-size:13px" onclick="exportPDF()">
-        <i class="ti ti-file-type-pdf"></i> Export PDF
-      </button>
+      <button class="btn btn-sec" style="min-height:36px;padding:7px 12px;font-size:13px" onclick="syncFromSheet()"><i class="ti ti-refresh"></i> Sync</button>
+      <div class="exp-wrap">
+        <button class="btn btn-green" style="min-height:36px;padding:7px 14px;font-size:13px" onclick="toggleDd('listExpDd')"><i class="ti ti-download"></i> Export <i class="ti ti-chevron-down" style="font-size:11px"></i></button>
+        <div class="exp-dd" id="listExpDd">
+          <div class="exp-opt" onclick="exportAllPDF()"><i class="ti ti-file-type-pdf" style="color:#e24b4a"></i> PDF ทั้งหมด</div>
+          <div class="exp-opt" onclick="exportAllXLSX()"><i class="ti ti-file-type-xls" style="color:#16a34a"></i> Excel ทั้งหมด</div>
+        </div>
+      </div>
     </div>
   </div>
   <div id="listBody"></div>
@@ -368,70 +360,66 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 </div></div>
 
 <script>
+// ══════════════ CONFIG ══════════════
 const PASSWORD  = 'Chassispe';
-const SHEET_API = 'https://script.google.com/macros/s/AKfycbxVZdEXiwxgYSLeEsmLFnrX2fJSUAqsSj7XRzkmBU2OaLxIRE6on9JQRsaJg_0dBL4/exec';
+const SHEET_API = 'https://script.google.com/macros/s/AKfycbwBD-OrL0VmvEDBAECq8wVFnPzyfwYznFB1RO4Pggy3DI-a4WLCsdiv0aHIEOJ5y5-_/exec';
 const PIC_LIST  = ['Nontasit','Tanapop','Worawich','Witsarut','Kitsana','Chawinthorn','Theerawat','Nattakit'];
 const LINE_MAP  = {"A3&V3P":["AS184","AS183"],"230W":["AS231","AS245","AS247","AS260","AS274","AS281","AS195"],"300W":["AS182","AS259","AS258","AS283","AS282"],"AHB-RX":["AS226","AS244","AS246"],"AHB-G":["AS275","AS276","AS277","AS278","AS279"],"V3.5R":["AS214"]};
 
-let db = JSON.parse(localStorage.getItem('cm_v19')) || [];
-let addAttachFiles = [], editAttachFiles = [];
+// ══════════════ STATE ══════════════
+let db=[], addAttachFiles=[], editAttachFiles=[];
 
-function save(){ localStorage.setItem('cm_v19', JSON.stringify(db)); }
-function todayStr(){ return new Date().toISOString().split('T')[0]; }
-function nowStr(){ const d=new Date(); return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+' '+p2(d.getHours())+':'+p2(d.getMinutes()); }
-function p2(n){ return String(n).padStart(2,'0'); }
-function tryParse(s){ try{ return JSON.parse(s); }catch(e){ return []; } }
+// ══════════════ UTILS ══════════════
+const todayStr=()=>new Date().toISOString().split('T')[0];
+const p2=n=>String(n).padStart(2,'0');
+const nowStr=()=>{ const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+const tryParse=s=>{ try{ return JSON.parse(s); }catch(e){ return []; } };
+const showLoading=msg=>{ document.getElementById('loadingOverlay').classList.remove('hide'); document.getElementById('loadingMsg').textContent=msg||'กำลังโหลด...'; };
+const hideLoading=()=>document.getElementById('loadingOverlay').classList.add('hide');
+function showSync(id,type,msg){ const el=document.getElementById(id); if(!el)return; el.className=`sync-bar show sync-${type}`; el.innerHTML=`<i class="ti ti-${type==='ok'?'circle-check':type==='err'?'alert-circle':'loader-2'}"></i> ${msg}`; if(type!=='loading') setTimeout(()=>el.classList.remove('show'),4000); }
 
-function showLoading(msg='กำลังโหลด...'){ document.getElementById('loadingOverlay').classList.remove('hide'); document.getElementById('loadingMsg').textContent=msg; }
-function hideLoading(){ document.getElementById('loadingOverlay').classList.add('hide'); }
-function showSync(id,type,msg){
-  const el=document.getElementById(id); if(!el) return;
-  el.className='sync-bar show sync-'+type;
-  el.innerHTML=`<i class="ti ti-${type==='ok'?'circle-check':type==='err'?'alert-circle':'loader-2'}"></i> ${msg}`;
-  if(type!=='loading') setTimeout(()=>el.classList.remove('show'),3500);
-}
+// export dropdown
+document.addEventListener('click',e=>{ if(!e.target.closest('.exp-wrap')) document.querySelectorAll('.exp-dd').forEach(d=>d.classList.remove('open')); });
+function toggleDd(id){ const d=document.getElementById(id); d.classList.toggle('open'); }
 
-// ── SHEET API (all via GET) ──
+// ══════════════ API ══════════════
 async function sheetGet(params){
-  const url=SHEET_API+'?'+new URLSearchParams(params).toString();
-  try{ const r=await fetch(url); return await r.json(); }
-  catch(e){ console.error('sheetGet error:',e); return {error:e.message}; }
+  try{ const r=await fetch(SHEET_API+'?'+new URLSearchParams(params)); return await r.json(); }
+  catch(e){ return {error:e.message}; }
+}
+async function sheetPost(action,data){
+  try{ const r=await fetch(SHEET_API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,data})}); return await r.json(); }
+  catch(e){ return {error:e.message}; }
 }
 
+// ══════════════ SYNC ══════════════
 async function syncFromSheet(){
   showLoading('กำลังโหลดข้อมูลจาก Google Sheet...');
   try{
     const json=await sheetGet({action:'getAll'});
-    if(json.records && Array.isArray(json.records)){
-      db=json.records.map(r=>({...r, attachFiles: typeof r.attachFiles==='string' ? tryParse(r.attachFiles) : (r.attachFiles||[]) }));
-      save();
-      if(document.getElementById('listPage').classList.contains('active')){ initFilters(); renderList(); }
+    if(json.records&&Array.isArray(json.records)){
+      db=json.records.map(r=>({...r,attachFiles:typeof r.attachFiles==='string'?tryParse(r.attachFiles):(r.attachFiles||[])}));
+      db.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
       hideLoading(); return true;
     }
-  } catch(e){ console.warn('syncFromSheet failed:',e); }
+  }catch(e){ console.warn(e); }
   hideLoading(); return false;
 }
 
-// ── LOGIN ──
+// ══════════════ LOGIN ══════════════
 function doLogin(){
   if(document.getElementById('loginPwd').value===PASSWORD){
     document.getElementById('loginPage').style.display='none';
     document.getElementById('appShell').style.display='block';
     initApp();
-  } else {
+  }else{
     const box=document.getElementById('loginBox');
-    document.getElementById('loginErr').textContent='รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่';
+    document.getElementById('loginErr').textContent='รหัสผ่านไม่ถูกต้อง';
     box.classList.remove('login-shake'); void box.offsetWidth; box.classList.add('login-shake');
     document.getElementById('loginPwd').value=''; document.getElementById('loginPwd').focus();
   }
 }
-function doLogout(){
-  if(confirm('ออกจากระบบ?')){
-    document.getElementById('loginPage').style.display='flex';
-    document.getElementById('appShell').style.display='none';
-    document.getElementById('loginPwd').value=''; document.getElementById('loginErr').textContent='';
-  }
-}
+function doLogout(){ if(confirm('ออกจากระบบ?')){ db=[]; document.getElementById('loginPage').style.display='flex'; document.getElementById('appShell').style.display='none'; document.getElementById('loginPwd').value=''; document.getElementById('loginErr').textContent=''; } }
 async function initApp(){
   const t=todayStr();
   document.getElementById('addDate').value=t; document.getElementById('addDate').setAttribute('max',t);
@@ -439,10 +427,10 @@ async function initApp(){
   await syncFromSheet(); gotoPage('listPage');
 }
 
-function blockFutureDate(el){ if(el.value>todayStr()) el.value=todayStr(); }
-function onAddDate(){ const d=document.getElementById('addDate').value, due=document.getElementById('addDue'); due.setAttribute('min',d); if(due.value&&due.value<d) due.value=d; }
-function onEditDate(){ const d=document.getElementById('editDate').value, due=document.getElementById('editDue'); due.setAttribute('min',d); if(due.value&&due.value<d) due.value=d; }
-
+// ══════════════ NAVIGATION ══════════════
+const blockFutureDate=el=>{ if(el.value>todayStr()) el.value=todayStr(); };
+function onAddDate(){ const d=document.getElementById('addDate').value,due=document.getElementById('addDue'); due.setAttribute('min',d); if(due.value&&due.value<d) due.value=d; }
+function onEditDate(){ const d=document.getElementById('editDate').value,due=document.getElementById('editDue'); due.setAttribute('min',d); if(due.value&&due.value<d) due.value=d; }
 function gotoPage(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
@@ -452,67 +440,80 @@ function gotoPage(p){
   if(p==='listPage'){ initFilters(); renderList(); }
 }
 
-function fillLines(mId,lId,sel=''){
-  const m=document.getElementById(mId).value, l=document.getElementById(lId);
-  l.innerHTML='<option value="">-- เลือก --</option>';
-  if(m&&LINE_MAP[m]){ l.disabled=false; LINE_MAP[m].forEach(x=>{ const o=new Option(x,x); if(x===sel)o.selected=true; l.add(o); }); }
-}
+// ══════════════ FORM HELPERS ══════════════
+function fillLines(mId,lId,sel=''){ const m=document.getElementById(mId).value,l=document.getElementById(lId); l.innerHTML='<option value="">-- เลือก --</option>'; if(m&&LINE_MAP[m]){ l.disabled=false; LINE_MAP[m].forEach(x=>{ const o=new Option(x,x); if(x===sel)o.selected=true; l.add(o); }); } }
+const getStatus=r=>{ if(r.status==='Finish') return 'Finish'; return r.due>=todayStr()?'On Plan':'Delay'; };
+function onStatusChange(sId,lblId,warnId,dueId){ const isF=document.getElementById(sId).value==='Finish'; document.getElementById(lblId).textContent=isF?'วันที่ทำเสร็จ':'Due Date'; document.getElementById(warnId).classList.toggle('show',isF); const dEl=document.getElementById(dueId); if(isF){ dEl.setAttribute('max',todayStr()); if(dEl.value>todayStr()) dEl.value=todayStr(); }else{ dEl.removeAttribute('max'); } }
+function previewImg(input,hId,thumbId){ if(!input.files[0]) return; const reader=new FileReader(); reader.onload=e=>{ const img=new Image(); img.onload=()=>{ const canvas=document.createElement('canvas'); const MAX=800; let w=img.width,h=img.height; if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}} canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h); const comp=canvas.toDataURL('image/jpeg',0.75); document.getElementById(hId).value=comp; document.getElementById(thumbId).innerHTML=`<img src="${comp}">`; }; img.src=e.target.result; }; reader.readAsDataURL(input.files[0]); }
 
-function getStatus(r){ if(r.status==='Finish') return 'Finish'; return r.due>=todayStr()?'On Plan':'Delay'; }
-function onStatusChange(sId,lblId,warnId,dueId){
-  const isF=document.getElementById(sId).value==='Finish';
-  document.getElementById(lblId).textContent=isF?'วันที่ทำเสร็จ':'Due Date';
-  document.getElementById(warnId).classList.toggle('show',isF);
-  const dEl=document.getElementById(dueId);
-  if(isF){ dEl.setAttribute('max',todayStr()); if(dEl.value>todayStr()) dEl.value=todayStr(); } else { dEl.removeAttribute('max'); }
-}
-
-function previewImg(input,hId,thumbId){
-  if(!input.files[0]) return;
-  const reader=new FileReader();
-  reader.onload=e=>{ const img=new Image(); img.onload=()=>{ const canvas=document.createElement('canvas'); const MAX=800; let w=img.width,h=img.height; if(w>MAX||h>MAX){ if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;} } canvas.width=w; canvas.height=h; canvas.getContext('2d').drawImage(img,0,0,w,h); const comp=canvas.toDataURL('image/jpeg',0.75); document.getElementById(hId).value=comp; document.getElementById(thumbId).innerHTML=`<img src="${comp}">`; }; img.src=e.target.result; };
-  reader.readAsDataURL(input.files[0]);
-}
-
+// ══════════════ ATTACH FILES ══════════════
+// ══ ATTACH: อัปโหลดไฟล์ไป Google Drive → เก็บ link ══
 function handleAttach(input,listId,prefix){
-  Array.from(input.files).forEach(f=>{ (prefix==='add'?addAttachFiles:editAttachFiles).push({name:f.name,size:f.size,type:f.type}); renderAttachList(listId,prefix); }); input.value='';
+  const arr=prefix==='add'?addAttachFiles:editAttachFiles;
+  Array.from(input.files).forEach(f=>{
+    const idx=arr.length;
+    arr.push({name:f.name,size:f.size,type:f.type,status:'uploading',fileUrl:''});
+    renderAttachList(listId,prefix);
+    const reader=new FileReader();
+    reader.onload=async ev=>{
+      const base64=ev.target.result.split(',')[1];
+      try{
+        const result=await sheetPost('uploadFile',{fileName:f.name,mimeType:f.type||'application/octet-stream',base64,size:f.size});
+        if(result.success){
+          arr[idx]={name:f.name,size:f.size,type:f.type,status:'done',fileUrl:result.fileUrl,fileId:result.fileId};
+        }else{
+          arr[idx].status='error'; arr[idx].error=result.error||'upload failed';
+        }
+      }catch(err){ arr[idx].status='error'; arr[idx].error=err.message; }
+      renderAttachList(listId,prefix);
+    };
+    reader.readAsDataURL(f);
+  });
+  input.value='';
 }
 function renderAttachList(listId,prefix){
-  const arr=prefix==='add'?addAttachFiles:editAttachFiles, el=document.getElementById(listId);
+  const arr=prefix==='add'?addAttachFiles:editAttachFiles;
+  const el=document.getElementById(listId);
   if(!arr.length){ el.innerHTML=''; return; }
-  el.innerHTML=arr.map((f,i)=>{ const ext=f.name.split('.').pop().toLowerCase(); const icon=ext==='pdf'?'ti-file-type-pdf':ext==='xlsx'||ext==='xls'?'ti-file-type-xls':ext==='docx'||ext==='doc'?'ti-file-type-doc':'ti-file'; const sz=f.size>1048576?(f.size/1048576).toFixed(1)+' MB':(f.size/1024).toFixed(0)+' KB'; return `<div class="attach-item"><i class="ti ${icon}"></i><span class="aname">${f.name}</span><span class="asize">${sz}</span><i class="ti ti-x adel" onclick="removeAttach(${i},'${listId}','${prefix}')"></i></div>`; }).join('');
+  el.innerHTML=arr.map((f,i)=>{
+    const ext=(f.name||'').split('.').pop().toLowerCase();
+    const icon=ext==='pdf'?'ti-file-type-pdf':ext==='xlsx'||ext==='xls'?'ti-file-type-xls':ext==='docx'||ext==='doc'?'ti-file-type-doc':'ti-file';
+    const sz=f.size>1048576?(f.size/1048576).toFixed(1)+' MB':Math.round(f.size/1024)+' KB';
+    let nameHtml='';
+    if(f.status==='uploading'){
+      nameHtml=`<span class="aname" style="color:#94a3b8"><i class="ti ti-loader-2" style="font-size:12px"></i> กำลังอัปโหลด... ${f.name}</span>`;
+    }else if(f.status==='error'){
+      nameHtml=`<span class="aname" style="color:var(--red)" title="${f.error||''}">⚠ ${f.name}</span>`;
+    }else if(f.fileUrl){
+      nameHtml=`<a class="aname dl" href="${f.fileUrl}" target="_blank" rel="noopener">${f.name}</a>`;
+    }else{
+      nameHtml=`<span class="aname">${f.name}</span>`;
+    }
+    return `<div class="attach-item"><i class="ti ${icon} aicon"></i>${nameHtml}<span class="asize">${sz}</span><i class="ti ti-x adel" onclick="removeAttach(${i},'${listId}','${prefix}')"></i></div>`;
+  }).join('');
 }
 function removeAttach(i,listId,prefix){ (prefix==='add'?addAttachFiles:editAttachFiles).splice(i,1); renderAttachList(listId,prefix); }
 
+// ══════════════ PIC DROPDOWN ══════════════
 function buildDrop(ddId,val){ document.getElementById(ddId).innerHTML=PIC_LIST.filter(p=>p.toLowerCase().includes(val.toLowerCase())).map(p=>`<div class="pic-opt" ontouchstart="pickPIC(event,'${ddId}','${p}')" onmousedown="pickPIC(event,'${ddId}','${p}')">${p}</div>`).join(''); }
 function filterPIC(inpId,ddId){ buildDrop(ddId,document.getElementById(inpId).value); document.getElementById(ddId).classList.add('open'); }
 function openDrop(ddId){ buildDrop(ddId,''); document.getElementById(ddId).classList.add('open'); }
 function closeDrop(ddId){ setTimeout(()=>document.getElementById(ddId).classList.remove('open'),200); }
 function pickPIC(e,ddId,name){ e.preventDefault(); document.getElementById(ddId==='addPICDrop'?'addPIC':'editPIC').value=name; document.getElementById(ddId).classList.remove('open'); }
 
-function initFilters(){
-  const mSel=document.getElementById('fModel'), pSel=document.getElementById('fPIC'), cm=mSel.value, cp=pSel.value;
-  mSel.innerHTML='<option value="All">ทั้งหมด</option>'+Object.keys(LINE_MAP).map(m=>`<option value="${m}">${m}</option>`).join('');
-  pSel.innerHTML='<option value="All">ทั้งหมด</option>'+[...new Set(db.map(x=>x.pic))].filter(Boolean).map(p=>`<option>${p}</option>`).join('');
-  mSel.value=cm; pSel.value=cp;
-}
-function updateLineFilter(){ const m=document.getElementById('fModel').value, l=document.getElementById('fLine'); l.innerHTML='<option value="All">ทั้งหมด</option>'; if(m!=='All'&&LINE_MAP[m]) LINE_MAP[m].forEach(x=>l.add(new Option(x,x))); }
+// ══════════════ FILTER / LIST ══════════════
+function initFilters(){ const mSel=document.getElementById('fModel'),pSel=document.getElementById('fPIC'),cm=mSel.value,cp=pSel.value; mSel.innerHTML='<option value="All">ทั้งหมด</option>'+Object.keys(LINE_MAP).map(m=>`<option value="${m}">${m}</option>`).join(''); pSel.innerHTML='<option value="All">ทั้งหมด</option>'+[...new Set(db.map(x=>x.pic))].filter(Boolean).map(p=>`<option>${p}</option>`).join(''); mSel.value=cm; pSel.value=cp; }
+function updateLineFilter(){ const m=document.getElementById('fModel').value,l=document.getElementById('fLine'); l.innerHTML='<option value="All">ทั้งหมด</option>'; if(m!=='All'&&LINE_MAP[m]) LINE_MAP[m].forEach(x=>l.add(new Option(x,x))); }
 function resetFilters(){ ['fModel','fStatus','fPIC'].forEach(id=>document.getElementById(id).value='All'); document.getElementById('fLine').innerHTML='<option value="All">ทั้งหมด</option>'; document.getElementById('fSearch').value=''; renderList(); }
-
+function getFiltered(){ const fm=document.getElementById('fModel').value,fl=document.getElementById('fLine').value,fp=document.getElementById('fPIC').value,fs=document.getElementById('fStatus').value,sq=document.getElementById('fSearch').value.toLowerCase(); return db.filter(r=>{ const st=getStatus(r); return (fm==='All'||r.model===fm)&&(fl==='All'||r.line===fl)&&(fp==='All'||r.pic===fp)&&(fs==='All'||st===fs)&&(!sq||(r.issue||'').toLowerCase().includes(sq)||(r.pic||'').toLowerCase().includes(sq)||(r.line||'').toLowerCase().includes(sq)||(r.process||'').toLowerCase().includes(sq)); }); }
 function renderList(){
-  const fm=document.getElementById('fModel').value, fl=document.getElementById('fLine').value, fp=document.getElementById('fPIC').value, fs=document.getElementById('fStatus').value, sq=document.getElementById('fSearch').value.toLowerCase();
-  const filtered=db.filter(r=>{ const st=getStatus(r); return (fm==='All'||r.model===fm)&&(fl==='All'||r.line===fl)&&(fp==='All'||r.pic===fp)&&(fs==='All'||st===fs)&&(!sq||(r.issue||'').toLowerCase().includes(sq)||(r.pic||'').toLowerCase().includes(sq)||(r.line||'').toLowerCase().includes(sq)||(r.process||'').toLowerCase().includes(sq)); });
-  let fin=0,onp=0,del=0;
+  const filtered=getFiltered(); let fin=0,onp=0,del=0;
   filtered.forEach(r=>{ const s=getStatus(r); s==='Finish'?fin++:s==='On Plan'?onp++:del++; });
-  document.getElementById('stTotal').textContent=filtered.length;
-  document.getElementById('stFinish').textContent=fin;
-  document.getElementById('stOnPlan').textContent=onp;
-  document.getElementById('stDelay').textContent=del;
+  document.getElementById('stTotal').textContent=filtered.length; document.getElementById('stFinish').textContent=fin; document.getElementById('stOnPlan').textContent=onp; document.getElementById('stDelay').textContent=del;
   document.getElementById('tableCount').textContent=`${filtered.length} รายการ`;
   if(!filtered.length){ document.getElementById('listBody').innerHTML=`<div class="empty-state"><i class="ti ti-database-off"></i>ไม่มีข้อมูล</div>`; return; }
   document.getElementById('listBody').innerHTML=filtered.map(r=>{
-    const idx=db.indexOf(r), st=getStatus(r);
-    const bc=st==='Finish'?'badge-finish':st==='On Plan'?'badge-onplan':'badge-delay';
+    const idx=db.indexOf(r),st=getStatus(r),bc=st==='Finish'?'badge-finish':st==='On Plan'?'badge-onplan':'badge-delay';
     const bs=st==='Finish'?'Done':st==='On Plan'?'On Plan':'X (Delay)';
     const bsc=st==='On Plan'?'#185FA5':st==='Delay'?'#A32D2D':'#3B6D11';
     const imgSrc=r.imgB||r.imgA||'';
@@ -522,6 +523,7 @@ function renderList(){
   }).join('');
 }
 
+// ══════════════ LOAD EDIT ══════════════
 function loadEdit(i){
   const r=db[i];
   document.getElementById('editIdx').value=i; document.getElementById('editCreatedAt').value=r.createdAt||'';
@@ -534,107 +536,293 @@ function loadEdit(i){
   document.getElementById('editImgB_data').value=r.imgB||''; document.getElementById('editImgA_data').value=r.imgA||'';
   document.getElementById('prevB').innerHTML=r.imgB?`<img src="${r.imgB}">`:'<i class="ti ti-photo" style="font-size:30px"></i>';
   document.getElementById('prevA').innerHTML=r.imgA?`<img src="${r.imgA}">`:'<i class="ti ti-photo" style="font-size:30px"></i>';
-  editAttachFiles=Array.isArray(r.attachFiles)?[...r.attachFiles]:[];
+  // โหลด attachFiles — มี fileUrl จาก Drive คลิกเปิดได้เลย
+  editAttachFiles=Array.isArray(r.attachFiles)?r.attachFiles.map(f=>({...f,status:f.fileUrl?'done':''})):[];
   renderAttachList('editAttachList','edit');
   onStatusChange('editStatus','editLbl','editWarn','editDue');
   gotoPage('editPage');
 }
 
+// ══════════════ DELETE — ส่งผ่าน POST เพื่อหลีกเลี่ยง URL encoding ผิดพลาด ══════════════
 async function deleteItem(){
-  if(!confirm('ลบรายการนี้?')) return;
-  const i=+document.getElementById('editIdx').value, createdAt=db[i].createdAt;
-  db.splice(i,1); save(); gotoPage('listPage');
-  await sheetGet({ action:'delete', id: encodeURIComponent(createdAt) });
+  if(!confirm('ลบรายการนี้? ไม่สามารถกู้คืนได้')) return;
+  const i=+document.getElementById('editIdx').value;
+  const row=db[i];
+  if(!row||!row.createdAt){ alert('ไม่พบ ID รายการ — ไม่สามารถลบได้'); return; }
+  showLoading('กำลังลบข้อมูล...');
+  const result=await sheetPost('delete',{createdAt:row.createdAt});
+  if(result.success){
+    await syncFromSheet();
+    gotoPage('listPage');
+  }else{
+    hideLoading();
+    alert('ลบไม่สำเร็จ: '+(result.error||'กรุณาลองใหม่'));
+  }
 }
 
+// ══════════════ SUBMIT ADD ══════════════
 async function submitAdd(e){
   e.preventDefault();
-  const status=document.getElementById('addStatus').value;
-  const imgB=document.getElementById('addImgB_data').value, imgA=document.getElementById('addImgA_data').value;
+  const status=document.getElementById('addStatus').value,imgB=document.getElementById('addImgB_data').value,imgA=document.getElementById('addImgA_data').value;
   if(status==='Finish'&&(!imgB||!imgA)) return alert('กรุณาแนบรูป Before และ After');
-  const btn=document.getElementById('addSubmitBtn');
-  btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2"></i> กำลังบันทึก...';
+  const btn=document.getElementById('addSubmitBtn'); btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2"></i> กำลังบันทึก...';
   showSync('addSyncBar','loading','กำลังบันทึกข้อมูล...');
   const item={
-    date:document.getElementById('addDate').value, model:document.getElementById('addModel').value,
-    line:document.getElementById('addLine').value, process:document.getElementById('addProcess').value,
-    pic:document.getElementById('addPIC').value, issue:document.getElementById('addIssue').value,
-    cause:document.getElementById('addCause').value, cm:document.getElementById('addCM').value,
-    status, due:document.getElementById('addDue').value, imgB, imgA,
-    attachFiles:addAttachFiles.map(f=>({name:f.name,size:f.size,type:f.type})),
-    createdAt:nowStr(), updatedAt:nowStr()
+    date:document.getElementById('addDate').value,model:document.getElementById('addModel').value,line:document.getElementById('addLine').value,
+    process:document.getElementById('addProcess').value,pic:document.getElementById('addPIC').value,
+    issue:document.getElementById('addIssue').value,cause:document.getElementById('addCause').value,cm:document.getElementById('addCM').value,
+    status,due:document.getElementById('addDue').value,imgB,imgA,
+    attachFiles:addAttachFiles.map(f=>({name:f.name,size:f.size,type:f.type,fileUrl:f.fileUrl||'',fileId:f.fileId||''})),
+    createdAt:nowStr(),updatedAt:nowStr()
   };
-  db.unshift(item); save();
-  const result=await sheetGet({ action:'add', data:encodeURIComponent(JSON.stringify(item)) });
+  const result=await sheetPost('add',item);
   btn.disabled=false; btn.innerHTML='<i class="ti ti-device-floppy"></i>&nbsp; บันทึกรายการ';
-  result.success ? showSync('addSyncBar','ok','✓ บันทึกลง Google Sheet แล้ว') : showSync('addSyncBar','err','บันทึก Local แล้ว — Sheet: '+(result.error||'error'));
-  document.getElementById('addForm').reset();
-  document.getElementById('addLine').disabled=true; document.getElementById('addLine').innerHTML='<option value="">-- เลือก --</option>';
-  ['addThumbB','addThumbA'].forEach(id=>document.getElementById(id).innerHTML='<i class="ti ti-photo" style="font-size:30px"></i>');
-  document.getElementById('addImgB_data').value=''; document.getElementById('addImgA_data').value='';
-  addAttachFiles=[]; document.getElementById('addAttachList').innerHTML=''; document.getElementById('addWarn').classList.remove('show');
-  const t=todayStr(); document.getElementById('addDate').value=t; document.getElementById('addDate').setAttribute('max',t); document.getElementById('addDue').value=t; document.getElementById('addDue').setAttribute('min',t);
-  gotoPage('listPage');
+  if(result.success){
+    showSync('addSyncBar','ok','✓ บันทึกลง Google Sheet แล้ว');
+    document.getElementById('addForm').reset();
+    document.getElementById('addLine').disabled=true; document.getElementById('addLine').innerHTML='<option value="">-- เลือก --</option>';
+    ['addThumbB','addThumbA'].forEach(id=>document.getElementById(id).innerHTML='<i class="ti ti-photo" style="font-size:30px"></i>');
+    document.getElementById('addImgB_data').value=''; document.getElementById('addImgA_data').value='';
+    addAttachFiles=[]; document.getElementById('addAttachList').innerHTML=''; document.getElementById('addWarn').classList.remove('show');
+    const t=todayStr(); document.getElementById('addDate').value=t; document.getElementById('addDate').setAttribute('max',t); document.getElementById('addDue').value=t; document.getElementById('addDue').setAttribute('min',t);
+    await syncFromSheet(); gotoPage('listPage');
+  }else{ showSync('addSyncBar','err','บันทึกไม่สำเร็จ: '+(result.error||'กรุณาลองใหม่')); }
 }
 
+// ══════════════ SUBMIT EDIT ══════════════
 async function submitEdit(e){
   e.preventDefault();
-  const i=+document.getElementById('editIdx').value;
-  const status=document.getElementById('editStatus').value;
-  const imgB=document.getElementById('editImgB_data').value, imgA=document.getElementById('editImgA_data').value;
+  const i=+document.getElementById('editIdx').value,status=document.getElementById('editStatus').value,imgB=document.getElementById('editImgB_data').value,imgA=document.getElementById('editImgA_data').value;
   if(status==='Finish'&&(!imgB||!imgA)) return alert('ต้องมีรูป Before และ After');
-  const btn=document.getElementById('editSubmitBtn');
-  btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2"></i> กำลังบันทึก...';
+  const btn=document.getElementById('editSubmitBtn'); btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2"></i> กำลังบันทึก...';
   showSync('editSyncBar','loading','กำลังอัปเดตข้อมูล...');
   const orig=db[i];
   const updated={
-    date:document.getElementById('editDate').value, model:document.getElementById('editModel').value,
-    line:document.getElementById('editLine').value, process:document.getElementById('editProcess').value,
-    pic:document.getElementById('editPIC').value, issue:document.getElementById('editIssue').value,
-    cause:document.getElementById('editCause').value, cm:document.getElementById('editCM').value,
-    status, due:document.getElementById('editDue').value, imgB, imgA,
-    attachFiles:editAttachFiles.map(f=>({name:f.name,size:f.size,type:f.type})),
-    createdAt:orig.createdAt||document.getElementById('editCreatedAt').value, updatedAt:nowStr()
+    date:document.getElementById('editDate').value,model:document.getElementById('editModel').value,line:document.getElementById('editLine').value,
+    process:document.getElementById('editProcess').value,pic:document.getElementById('editPIC').value,
+    issue:document.getElementById('editIssue').value,cause:document.getElementById('editCause').value,cm:document.getElementById('editCM').value,
+    status,due:document.getElementById('editDue').value,imgB,imgA,
+    attachFiles:editAttachFiles.map(f=>({name:f.name,size:f.size,type:f.type,fileUrl:f.fileUrl||'',fileId:f.fileId||''})),
+    createdAt:orig.createdAt||document.getElementById('editCreatedAt').value,updatedAt:nowStr()
   };
-  db[i]=updated; save();
-  const result=await sheetGet({ action:'update', data:encodeURIComponent(JSON.stringify(updated)) });
+  const result=await sheetPost('update',updated);
   btn.disabled=false; btn.innerHTML='<i class="ti ti-device-floppy"></i> อัปเดต';
-  result.success ? showSync('editSyncBar','ok','✓ อัปเดตลง Google Sheet แล้ว') : showSync('editSyncBar','err','บันทึก Local แล้ว — Sheet: '+(result.error||'error'));
-  gotoPage('listPage');
+  if(result.success){ showSync('editSyncBar','ok','✓ อัปเดตลง Google Sheet แล้ว'); await syncFromSheet(); gotoPage('listPage'); }
+  else{ showSync('editSyncBar','err','บันทึกไม่สำเร็จ: '+(result.error||'กรุณาลองใหม่')); }
 }
 
-function exportPDF(){
+// ══════════════════════════════════════════
+//  PDF ENGINE
+// ══════════════════════════════════════════
+function buildDetailPage(doc,r,docNo,isFirst){
+  if(!isFirst) doc.addPage();
+  const st=getStatus(r);
+  const now=new Date(),ds=`${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(now.getDate())}`,ts=`${p2(now.getHours())}:${p2(now.getMinutes())}`;
+
+  // Header
+  doc.setFillColor(24,95,165); doc.rect(0,0,210,24,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.text('COUNTERMEASURE REPORT',14,11);
+  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.text(`Generated: ${ds} ${ts}   |   No: ${docNo}`,14,18);
+  const sc=st==='Finish'?[59,109,17]:st==='On Plan'?[24,95,165]:[163,45,45];
+  doc.setFillColor(...sc); doc.roundedRect(152,6,44,11,2,2,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text(`● ${st}`,174,12.5,{align:'center'});
+
+  let y=29;
+  const secBar=(title,yy)=>{ doc.setFillColor(235,243,254); doc.rect(14,yy,182,7,'F'); doc.setDrawColor(24,95,165); doc.setLineWidth(0.4); doc.line(14,yy,14,yy+7); doc.setTextColor(24,95,165); doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text(title,17,yy+5); return yy+10; };
+  const fld=(lb,val,x,yy,w)=>{ doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139); doc.text(lb,x,yy); doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(30,41,59); const lines=doc.splitTextToSize(String(val||'—'),w-2); doc.text(lines,x,yy+4); return yy+4+lines.length*4.5; };
+  const tbox=(lb,val,x,yy,w,rgb)=>{ doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139); doc.text(lb,x,yy); yy+=3; const lines=doc.splitTextToSize(String(val||'—'),w-6); const bh=lines.length*5+7; doc.setFillColor(250,250,252); doc.setDrawColor(...rgb); doc.setLineWidth(0.6); doc.roundedRect(x,yy,w,bh,1,1,'FD'); doc.setTextColor(30,41,59); doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.text(lines,x+3,yy+5); return yy+bh+4; };
+
+  y=secBar('■  GENERAL INFORMATION',y);
+  const a1=fld('Date',r.date,14,y,38),a2=fld('Model',r.model,56,y,36),a3=fld('Line / Process',(r.line||'')+(r.process?' / '+r.process:''),96,y,58),a4=fld('Due',r.due,158,y,38);
+  y=Math.max(a1,a2,a3,a4)+2;
+  const b1=fld('PIC',r.pic,14,y,60),b2=fld('Created',r.createdAt,78,y,60),b3=fld('Updated',r.updatedAt,142,y,54);
+  y=Math.max(b1,b2,b3)+4;
+
+  y=secBar('■  PROBLEM DETAIL',y);
+  y=tbox('Issue (อาการเสีย)',r.issue,14,y,182,[227,73,73]);
+  const c1=tbox('Root Cause (สาเหตุ)',r.cause,14,y,89,[186,117,23]);
+  const c2=tbox('Countermeasure / CM (การแก้ไข)',r.cm,107,y,89,[59,109,17]);
+  y=Math.max(c1,c2)+2;
+
+  const files=Array.isArray(r.attachFiles)?r.attachFiles:[];
+  if(files.length){
+    y=secBar('■  ATTACHMENTS',y);
+    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105);
+    files.forEach((f,fi)=>{ const sz=f.size>1048576?((f.size/1048576).toFixed(1)+' MB'):(Math.round(f.size/1024)+' KB'); doc.text(`${fi+1}.  ${f.name||''}   (${sz})`,17,y); y+=5; });
+    y+=2;
+  }
+
+  if(r.imgB||r.imgA){
+    y=secBar('■  BEFORE / AFTER PHOTOS',y);
+    const avail=280-y, imgH=Math.min(65,avail-8);
+    if(r.imgB){ doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139); doc.text('BEFORE',14,y); try{ doc.addImage(r.imgB,'JPEG',14,y+2,88,imgH); }catch(ex){} }
+    if(r.imgA){ doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139); doc.text('AFTER',106,y); try{ doc.addImage(r.imgA,'JPEG',106,y+2,90,imgH); }catch(ex){} }
+    y+=imgH+6;
+  }
+
+  // Footer
+  doc.setDrawColor(226,232,240); doc.setLineWidth(0.3); doc.line(14,286,196,286);
+  doc.setFontSize(7); doc.setTextColor(148,163,184); doc.setFont('helvetica','normal');
+  doc.text('CM System — Countermeasure Management  |  CONFIDENTIAL',14,290);
+  doc.text(`Page ${doc.internal.getCurrentPageInfo().pageNumber}`,196,290,{align:'right'});
+}
+
+// ══════════════ EXPORT PDF รายการเดียว ══════════════
+function exportOnePDF(){
+  document.querySelectorAll('.exp-dd').forEach(d=>d.classList.remove('open'));
+  const i=+document.getElementById('editIdx').value, r=db[i]; if(!r) return;
   const {jsPDF}=window.jspdf, doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  const now=new Date(), ds=now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate()), ts=p2(now.getHours())+':'+p2(now.getMinutes());
-  doc.setFillColor(24,95,165); doc.rect(0,0,210,22,'F');
-  doc.setTextColor(255,255,255); doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.text('Countermeasure Report',14,10);
-  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text(`Generated: ${ds} ${ts}`,14,16);
-  const fm=document.getElementById('fModel').value, fl=document.getElementById('fLine').value, fp=document.getElementById('fPIC').value, fs=document.getElementById('fStatus').value, sq=document.getElementById('fSearch').value.toLowerCase();
-  const filtered=db.filter(r=>{ const st=getStatus(r); return (fm==='All'||r.model===fm)&&(fl==='All'||r.line===fl)&&(fp==='All'||r.pic===fp)&&(fs==='All'||st===fs)&&(!sq||(r.issue||'').toLowerCase().includes(sq)||(r.pic||'').toLowerCase().includes(sq)||(r.line||'').toLowerCase().includes(sq)); });
-  let fin=0,onp=0,del=0; filtered.forEach(r=>{ const s=getStatus(r); s==='Finish'?fin++:s==='On Plan'?onp++:del++; });
-  let y=28;
-  [{label:'Total',val:filtered.length,color:[30,41,59]},{label:'Finish',val:fin,color:[59,109,17]},{label:'On Plan',val:onp,color:[24,95,165]},{label:'Delay',val:del,color:[163,45,45]}].forEach((b,i)=>{ const x=14+i*45; doc.setFillColor(...b.color); doc.roundedRect(x,y,42,14,2,2,'F'); doc.setTextColor(255,255,255); doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.text(String(b.val),x+21,y+8,{align:'center'}); doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.text(b.label,x+21,y+12.5,{align:'center'}); });
-  doc.setTextColor(100,116,139); doc.setFontSize(7); doc.text(`Filter: Model=${fm} | Line=${fl} | PIC=${fp} | Status=${fs}`,14,y+19); y+=26;
-  doc.setTextColor(30,41,59); doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.text('Countermeasure List',14,y); y+=4;
-  doc.autoTable({startY:y,head:[['#','Date','Line/Process','Model','PIC','Issue','Cause','CM','Status','Due']],body:filtered.map((r,i)=>[i+1,r.date||'',(r.line||'')+(r.process?'\n'+r.process:''),r.model||'',r.pic||'',r.issue||'',r.cause||'',r.cm||'',getStatus(r),r.due||'']),theme:'grid',headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:7,halign:'center',valign:'middle',cellPadding:2},bodyStyles:{fontSize:7,cellPadding:2,valign:'top',textColor:[30,41,59]},columnStyles:{0:{halign:'center',cellWidth:8},1:{cellWidth:18},2:{cellWidth:22},3:{cellWidth:16},4:{cellWidth:22},5:{cellWidth:28},6:{cellWidth:24},7:{cellWidth:24},8:{cellWidth:14,halign:'center'},9:{cellWidth:18}},alternateRowStyles:{fillColor:[248,250,252]},didParseCell:function(d){ if(d.section==='body'&&d.column.index===8){ const v=d.cell.raw; d.cell.styles.textColor=v==='Finish'?[59,109,17]:v==='On Plan'?[24,95,165]:[163,45,45]; d.cell.styles.fontStyle='bold'; } },margin:{left:14,right:14},pageBreak:'auto',rowPageBreak:'avoid',didDrawPage:function(){ const pg=doc.internal.getCurrentPageInfo().pageNumber, tot=doc.internal.getNumberOfPages(); doc.setFontSize(7); doc.setTextColor(148,163,184); doc.text(`CM System | Page ${pg} of ${tot}`,105,290,{align:'center'}); doc.text('CONFIDENTIAL',196,290,{align:'right'}); }});
-  filtered.forEach((r,idx)=>{
-    if(!r.imgB&&!r.imgA) return;
-    doc.addPage(); const st=getStatus(r);
-    doc.setFillColor(248,250,252); doc.rect(0,0,210,297,'F'); doc.setFillColor(24,95,165); doc.rect(0,0,210,18,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text(`Item #${idx+1} — ${r.line||''}${r.process?' / '+r.process:''}`,14,11);
-    const sc=st==='Finish'?[59,109,17]:st==='On Plan'?[24,95,165]:[163,45,45]; doc.setFillColor(...sc); doc.roundedRect(168,5,28,9,2,2,'F'); doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text(st,182,11,{align:'center'});
-    let dy=24;
-    const di=(lb,val,x,y,w)=>{ doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139); doc.text(lb.toUpperCase(),x,y); doc.setFont('helvetica','normal'); doc.setTextColor(30,41,59); doc.setFontSize(9); const lines=doc.splitTextToSize(val||'—',w-4); doc.text(lines,x,y+4); return y+4+lines.length*4; };
-    di('Date',r.date||'',14,dy,44); di('Model',r.model||'',60,dy,40); di('PIC',r.pic||'',102,dy,54); di('Due',r.due||'',158,dy,44); dy+=16;
-    const e1=di('Issue',r.issue||'',14,dy,90), e2=di('Cause',r.cause||'',106,dy,90); dy=Math.max(e1,e2)+4;
-    dy=di('Countermeasure (CM)',r.cm||'',14,dy,182)+6;
-    if(r.imgB||r.imgA){ doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139); doc.text('BEFORE / AFTER PHOTOS',14,dy); dy+=4; doc.setDrawColor(226,232,240); doc.setLineWidth(0.3); doc.line(14,dy,196,dy); dy+=4; if(r.imgB){ try{ doc.addImage(r.imgB,'JPEG',14,dy,85,60); }catch(ex){} } if(r.imgA){ try{ doc.addImage(r.imgA,'JPEG',105,dy,85,60); }catch(ex){} } dy+=64; doc.setFontSize(7); doc.setTextColor(148,163,184); if(r.imgB) doc.text('Before',56,dy,{align:'center'}); if(r.imgA) doc.text('After',147,dy,{align:'center'}); }
-    doc.setFontSize(7); doc.setTextColor(148,163,184); doc.text(`CM System | Page ${doc.internal.getCurrentPageInfo().pageNumber}`,105,290,{align:'center'});
-  });
-  doc.save(`CM_Report_${ds}.pdf`);
+  buildDetailPage(doc,r,`CM-${String(i+1).padStart(4,'0')}`,true);
+  doc.save(`CM_${(r.line||'LINE').replace(/\s/g,'')}_${r.date||'nodate'}.pdf`);
 }
 
-window.onload=function(){ hideLoading(); document.getElementById('loginPage').style.display='flex'; };
+// ══════════════ EXPORT PDF ทั้งหมด ══════════════
+function exportAllPDF(){
+  document.querySelectorAll('.exp-dd').forEach(d=>d.classList.remove('open'));
+  const filtered=getFiltered(); if(!filtered.length){ alert('ไม่มีข้อมูล'); return; }
+  const {jsPDF}=window.jspdf, doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const now=new Date(),ds=`${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(now.getDate())}`,ts=`${p2(now.getHours())}:${p2(now.getMinutes())}`;
+
+  // Summary page
+  doc.setFillColor(24,95,165); doc.rect(0,0,210,28,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.text('COUNTERMEASURE REPORT',14,13);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text(`Generated: ${ds} ${ts}   |   Total: ${filtered.length} items`,14,21);
+  let fin=0,onp=0,del=0; filtered.forEach(r=>{ const s=getStatus(r); s==='Finish'?fin++:s==='On Plan'?onp++:del++; });
+  let y=34;
+  [{label:'Total',val:filtered.length,color:[30,41,59]},{label:'Finish',val:fin,color:[59,109,17]},{label:'On Plan',val:onp,color:[24,95,165]},{label:'Delay',val:del,color:[163,45,45]}].forEach((b,bi)=>{
+    const x=14+bi*47; doc.setFillColor(...b.color); doc.roundedRect(x,y,44,14,2,2,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(15); doc.setFont('helvetica','bold'); doc.text(String(b.val),x+22,y+8,{align:'center'});
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.text(b.label,x+22,y+12.5,{align:'center'});
+  }); y+=22;
+  doc.autoTable({
+    startY:y,
+    head:[['#','Date','Line / Process','Model','PIC','Issue','Status','Due']],
+    body:filtered.map((r,ri)=>[ri+1,r.date||'',(r.line||'')+(r.process?'\n'+r.process:''),r.model||'',r.pic||'',r.issue||'',getStatus(r),r.due||'']),
+    theme:'grid',headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:7,halign:'center',cellPadding:2},
+    bodyStyles:{fontSize:7,cellPadding:2,valign:'top'},
+    columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:18},2:{cellWidth:28},3:{cellWidth:18},4:{cellWidth:22},5:{cellWidth:50},6:{cellWidth:16,halign:'center'},7:{cellWidth:18}},
+    alternateRowStyles:{fillColor:[248,250,252]},
+    didParseCell:d=>{ if(d.section==='body'&&d.column.index===6){ const v=d.cell.raw; d.cell.styles.textColor=v==='Finish'?[59,109,17]:v==='On Plan'?[24,95,165]:[163,45,45]; d.cell.styles.fontStyle='bold'; } },
+    margin:{left:14,right:14},
+    didDrawPage:()=>{ const pg=doc.internal.getCurrentPageInfo().pageNumber; doc.setFontSize(7); doc.setTextColor(148,163,184); doc.text(`CM System | Page ${pg}`,105,290,{align:'center'}); }
+  });
+  filtered.forEach((r,ri)=>buildDetailPage(doc,r,`CM-${String(ri+1).padStart(4,'0')}`,false));
+  doc.save(`CM_Report_All_${ds}.pdf`);
+}
+
+// ══════════════════════════════════════════
+//  EXCEL ENGINE
+// ══════════════════════════════════════════
+function styleXLSX(ws){
+  // SheetJS CE ไม่รองรับ cell styles แต่ใส่ column width ได้
+  ws['!cols']=[{wch:28},{wch:40},{wch:20},{wch:20}];
+}
+
+// ══════════════ EXPORT EXCEL รายการเดียว ══════════════
+function exportOneXLSX(){
+  document.querySelectorAll('.exp-dd').forEach(d=>d.classList.remove('open'));
+  const i=+document.getElementById('editIdx').value, r=db[i]; if(!r){ alert('ไม่พบข้อมูล'); return; }
+  const st=getStatus(r), files=Array.isArray(r.attachFiles)?r.attachFiles:[];
+  const rows=[
+    ['COUNTERMEASURE REPORT','','',''],[''],
+    ['Document No',`CM-${String(i+1).padStart(4,'0')}`,'Status',st],[''],
+    ['━━  GENERAL INFORMATION  ━━','','',''],
+    ['วันที่เกิดปัญหา / Date',r.date||'','Model Group',r.model||''],
+    ['Line',r.line||'','Process',r.process||''],
+    ['PIC (ผู้รับผิดชอบ)',r.pic||'','Due Date',r.due||''],
+    ['Created At',r.createdAt||'','Updated At',r.updatedAt||''],[''],
+    ['━━  PROBLEM DETAIL  ━━','','',''],
+    ['อาการเสีย / Issue','','',''],
+    [r.issue||'—','','',''],[''],
+    ['สาเหตุ / Root Cause','','',''],
+    [r.cause||'—','','',''],[''],
+    ['การแก้ไข / Countermeasure (CM)','','',''],
+    [r.cm||'—','','',''],[''],
+  ];
+  if(files.length){
+    rows.push(['━━  ATTACHMENTS  ━━','','','']);
+    files.forEach((f,fi)=>{ const sz=f.size>1048576?((f.size/1048576).toFixed(1)+' MB'):(Math.round(f.size/1024)+' KB'); rows.push([`${fi+1}.  ${f.name||''}`,sz,'','']); });
+  }
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:34},{wch:44},{wch:18},{wch:20}];
+  ws['!merges']=[
+    {s:{r:0,c:0},e:{r:0,c:3}},
+    {s:{r:4,c:0},e:{r:4,c:3}},
+    {s:{r:10,c:0},e:{r:10,c:3}},
+    {s:{r:11,c:0},e:{r:11,c:3}},
+    {s:{r:12,c:0},e:{r:12,c:3}},
+    {s:{r:13,c:0},e:{r:13,c:3}},
+    {s:{r:14,c:0},e:{r:14,c:3}},
+    {s:{r:15,c:0},e:{r:15,c:3}},
+    {s:{r:16,c:0},e:{r:16,c:3}},
+    {s:{r:17,c:0},e:{r:17,c:3}},
+  ];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'CM Report');
+  XLSX.writeFile(wb,`CM_${(r.line||'LINE').replace(/\s/g,'')}_${r.date||'nodate'}.xlsx`);
+}
+
+// ══════════════ EXPORT EXCEL ทั้งหมด ══════════════
+function exportAllXLSX(){
+  document.querySelectorAll('.exp-dd').forEach(d=>d.classList.remove('open'));
+  const filtered=getFiltered(); if(!filtered.length){ alert('ไม่มีข้อมูล'); return; }
+  const now=new Date(),ds=`${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(now.getDate())}`;
+  const wb=XLSX.utils.book_new();
+
+  // ── Sheet Summary ──
+  let fin=0,onp=0,del=0; filtered.forEach(r=>{ const s=getStatus(r); s==='Finish'?fin++:s==='On Plan'?onp++:del++; });
+  const sumRows=[
+    ['COUNTERMEASURE REPORT — SUMMARY'],
+    [`Generated: ${ds}   |   Total: ${filtered.length}   Finish: ${fin}   On Plan: ${onp}   Delay: ${del}`],
+    [''],
+    ['#','Date','Model','Line','Process','PIC','Issue','Cause','CM','Status','Due Date','Created At','Updated At','Attachments']
+  ];
+  filtered.forEach((r,ri)=>{
+    const files=Array.isArray(r.attachFiles)?r.attachFiles:[];
+    sumRows.push([ri+1,r.date||'',r.model||'',r.line||'',r.process||'',r.pic||'',r.issue||'',r.cause||'',r.cm||'',getStatus(r),r.due||'',r.createdAt||'',r.updatedAt||'',files.map(f=>f.name||'').join(', ')]);
+  });
+  const wsSummary=XLSX.utils.aoa_to_sheet(sumRows);
+  wsSummary['!cols']=[{wch:4},{wch:12},{wch:10},{wch:8},{wch:10},{wch:14},{wch:32},{wch:26},{wch:30},{wch:10},{wch:12},{wch:16},{wch:16},{wch:32}];
+  wsSummary['!merges']=[{s:{r:0,c:0},e:{r:0,c:13}},{s:{r:1,c:0},e:{r:1,c:13}}];
+  XLSX.utils.book_append_sheet(wb,wsSummary,'Summary');
+
+  // ── Sheet แต่ละรายการ ──
+  filtered.forEach((r,ri)=>{
+    const st=getStatus(r), files=Array.isArray(r.attachFiles)?r.attachFiles:[];
+    const rows=[
+      ['COUNTERMEASURE REPORT',''],[''],
+      ['Document No',`CM-${String(ri+1).padStart(4,'0')}`],
+      ['Status',st],[''],
+      ['━━  GENERAL INFORMATION  ━━',''],
+      ['วันที่เกิดปัญหา',r.date||''],
+      ['Model Group',r.model||''],
+      ['Line',r.line||''],
+      ['Process',r.process||''],
+      ['PIC (ผู้รับผิดชอบ)',r.pic||''],
+      ['Due Date',r.due||''],
+      ['Created At',r.createdAt||''],
+      ['Updated At',r.updatedAt||''],[''],
+      ['━━  PROBLEM DETAIL  ━━',''],
+      ['อาการเสีย / Issue',r.issue||'—'],
+      ['สาเหตุ / Root Cause',r.cause||'—'],
+      ['การแก้ไข / CM',r.cm||'—'],[''],
+    ];
+    if(files.length){
+      rows.push(['━━  ATTACHMENTS  ━━','']);
+      files.forEach((f,fi)=>{ const sz=f.size>1048576?((f.size/1048576).toFixed(1)+' MB'):(Math.round(f.size/1024)+' KB'); rows.push([`  ${fi+1}.  ${f.name||''}`,sz]); });
+    }
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:28},{wch:50}];
+    ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];
+    // ชื่อ sheet ต้องไม่เกิน 31 chars
+    const sn=`${String(ri+1).padStart(3,'0')}_${(r.line||'L').substring(0,8)}`.substring(0,31);
+    XLSX.utils.book_append_sheet(wb,ws,sn);
+  });
+  XLSX.writeFile(wb,`CM_Report_All_${ds}.xlsx`);
+}
+
+// ══════════════ INIT ══════════════
+window.onload=()=>{ hideLoading(); document.getElementById('loginPage').style.display='flex'; };
 </script>
 </body>
 </html>
