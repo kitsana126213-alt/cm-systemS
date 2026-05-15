@@ -148,6 +148,37 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 .exp-opt:last-child{border-bottom:none}
 .exp-opt:hover{background:var(--blue50);color:var(--blue)}
 .exp-opt i{font-size:17px;flex-shrink:0}
+/* ── Mic button ── */
+.mic-wrap{position:relative;margin-bottom:4px}
+.mic-btn{position:absolute;bottom:8px;right:8px;width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;z-index:10;background:#e2e8f0;color:#475569}
+.mic-btn:hover{background:#185FA5;color:#fff}
+.mic-btn.recording{background:#e24b4a;color:#fff;animation:pulse .8s ease-in-out infinite}
+.mic-btn.recording i{animation:none}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(226,75,74,.4)}50%{box-shadow:0 0 0 8px rgba(226,75,74,0)}}
+.mic-wrap textarea{padding-bottom:44px}
+.mic-lang{position:absolute;bottom:8px;right:48px;font-size:10px;padding:3px 7px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;font-family:inherit}
+.mic-lang:hover{border-color:#185FA5;color:#185FA5}
+/* ── Responsive ── */
+@media(max-width:900px){.wrap{padding:10px 8px 40px}}
+@media(max-width:600px){
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g2{grid-template-columns:minmax(0,1fr)}
+  .photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .btn-group{flex-direction:column}
+  .btn-group .btn{width:100%}
+  .ic-img{width:64px;min-width:64px}
+  .ic-lbl{width:56px;min-width:56px;font-size:10px}
+  nav{overflow-x:auto}
+  .exp-dd{min-width:160px}
+}
+@media(max-width:400px){
+  .g4{grid-template-columns:minmax(0,1fr)}
+  .photo-grid{grid-template-columns:minmax(0,1fr)}
+  .stat-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(min-width:1200px){.wrap{max-width:1100px}}
 </style>
 </head>
 <body>
@@ -199,10 +230,10 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       </div>
     </div>
     <div class="g2">
-      <div><label>อาการเสีย (Issue)</label><textarea class="ta-issue" id="addIssue" rows="3" placeholder="ระบุอาการเสีย..." required></textarea></div>
-      <div><label>สาเหตุ (Cause)</label><textarea class="ta-cause" id="addCause" rows="3" placeholder="ระบุสาเหตุ..."></textarea></div>
+      <div><label>อาการเสีย (Issue)</label><div class="mic-wrap"><textarea class="ta-issue" id="addIssue" rows="3" placeholder="ระบุอาการเสีย..." required></textarea><select class="mic-lang" id="micLang_addIssue"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('addIssue')" id="micBtn_addIssue" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
+      <div><label>สาเหตุ (Cause)</label><div class="mic-wrap"><textarea class="ta-cause" id="addCause" rows="3" placeholder="ระบุสาเหตุ..."></textarea><select class="mic-lang" id="micLang_addCause"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('addCause')" id="micBtn_addCause" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
     </div>
-    <div class="g1"><label>การแก้ไข (CM)</label><textarea class="ta-cm" id="addCM" rows="3" placeholder="ระบุวิธีแก้ไข..." required></textarea></div>
+    <div class="g1"><label>การแก้ไข (CM)</label><div class="mic-wrap"><textarea class="ta-cm" id="addCM" rows="3" placeholder="ระบุวิธีแก้ไข..." required></textarea><select class="mic-lang" id="micLang_addCM"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('addCM')" id="micBtn_addCM" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
     <div class="g2">
       <div><label>Status</label>
         <select id="addStatus" onchange="onStatusChange('addStatus','addLbl','addWarn','addDue')">
@@ -267,10 +298,10 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
       </div>
     </div>
     <div class="g2">
-      <div><label>อาการเสีย</label><textarea class="ta-issue" id="editIssue" rows="3"></textarea></div>
-      <div><label>สาเหตุ</label><textarea class="ta-cause" id="editCause" rows="3"></textarea></div>
+      <div><label>อาการเสีย</label><div class="mic-wrap"><textarea class="ta-issue" id="editIssue" rows="3"></textarea><select class="mic-lang" id="micLang_editIssue"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('editIssue')" id="micBtn_editIssue" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
+      <div><label>สาเหตุ</label><div class="mic-wrap"><textarea class="ta-cause" id="editCause" rows="3"></textarea><select class="mic-lang" id="micLang_editCause"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('editCause')" id="micBtn_editCause" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
     </div>
-    <div class="g1"><label>การแก้ไข (CM)</label><textarea class="ta-cm" id="editCM" rows="3"></textarea></div>
+    <div class="g1"><label>การแก้ไข (CM)</label><div class="mic-wrap"><textarea class="ta-cm" id="editCM" rows="3"></textarea><select class="mic-lang" id="micLang_editCM"><option value="th-TH">ไทย</option><option value="en-US">ENG</option></select><button type="button" class="mic-btn" onclick="toggleMic('editCM')" id="micBtn_editCM" title="พูดเพื่อบันทึก"><i class="ti ti-microphone"></i></button></div></div>
     <div class="g2">
       <div><label>Status</label>
         <select id="editStatus" onchange="onStatusChange('editStatus','editLbl','editWarn','editDue')">
@@ -362,7 +393,7 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 <script>
 // ══════════════ CONFIG ══════════════
 const PASSWORD  = 'Chassispe';
-const SHEET_API = 'https://script.google.com/macros/s/AKfycbwBD-OrL0VmvEDBAECq8wVFnPzyfwYznFB1RO4Pggy3DI-a4WLCsdiv0aHIEOJ5y5-_/exec';
+const SHEET_API = 'https://script.google.com/macros/s/AKfycbw6YNvW9HeReB9ZHB6mlApSY39qncKz_ZxN6-7VLSXn0AS0X25qyeioD6sjrHzrzhAJ/exec';
 const PIC_LIST  = ['Nontasit','Tanapop','Worawich','Witsarut','Kitsana','Chawinthorn','Theerawat','Nattakit'];
 const LINE_MAP  = {"A3&V3P":["AS184","AS183"],"230W":["AS231","AS245","AS247","AS260","AS274","AS281","AS195"],"300W":["AS182","AS259","AS258","AS283","AS282"],"AHB-RX":["AS226","AS244","AS246"],"AHB-G":["AS275","AS276","AS277","AS278","AS279"],"V3.5R":["AS214"]};
 
@@ -632,28 +663,28 @@ function buildDetailPage(doc,r,docNo,isFirst){
   const fld=(lb,val,x,yy,w)=>{ doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139); doc.text(lb,x,yy); doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(30,41,59); const lines=doc.splitTextToSize(String(val||'—'),w-2); doc.text(lines,x,yy+4); return yy+4+lines.length*4.5; };
   const tbox=(lb,val,x,yy,w,rgb)=>{ doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139); doc.text(lb,x,yy); yy+=3; const lines=doc.splitTextToSize(String(val||'—'),w-6); const bh=lines.length*5+7; doc.setFillColor(250,250,252); doc.setDrawColor(...rgb); doc.setLineWidth(0.6); doc.roundedRect(x,yy,w,bh,1,1,'FD'); doc.setTextColor(30,41,59); doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.text(lines,x+3,yy+5); return yy+bh+4; };
 
-  y=secBar('■  GENERAL INFORMATION',y);
+  y=secBar('General Information',y);
   const a1=fld('Date',r.date,14,y,38),a2=fld('Model',r.model,56,y,36),a3=fld('Line / Process',(r.line||'')+(r.process?' / '+r.process:''),96,y,58),a4=fld('Due',r.due,158,y,38);
   y=Math.max(a1,a2,a3,a4)+2;
   const b1=fld('PIC',r.pic,14,y,60),b2=fld('Created',r.createdAt,78,y,60),b3=fld('Updated',r.updatedAt,142,y,54);
   y=Math.max(b1,b2,b3)+4;
 
-  y=secBar('■  PROBLEM DETAIL',y);
-  y=tbox('Issue (อาการเสีย)',r.issue,14,y,182,[227,73,73]);
-  const c1=tbox('Root Cause (สาเหตุ)',r.cause,14,y,89,[186,117,23]);
-  const c2=tbox('Countermeasure / CM (การแก้ไข)',r.cm,107,y,89,[59,109,17]);
+  y=secBar('Problem Detail',y);
+  y=tbox('Issue',r.issue,14,y,182,[227,73,73]);
+  const c1=tbox('Root Cause',r.cause,14,y,89,[186,117,23]);
+  const c2=tbox('Countermeasure (CM)',r.cm,107,y,89,[59,109,17]);
   y=Math.max(c1,c2)+2;
 
   const files=Array.isArray(r.attachFiles)?r.attachFiles:[];
   if(files.length){
-    y=secBar('■  ATTACHMENTS',y);
+    y=secBar('Attachments',y);
     doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105);
     files.forEach((f,fi)=>{ const sz=f.size>1048576?((f.size/1048576).toFixed(1)+' MB'):(Math.round(f.size/1024)+' KB'); doc.text(`${fi+1}.  ${f.name||''}   (${sz})`,17,y); y+=5; });
     y+=2;
   }
 
   if(r.imgB||r.imgA){
-    y=secBar('■  BEFORE / AFTER PHOTOS',y);
+    y=secBar('Before / After Photos',y);
     const avail=280-y, imgH=Math.min(65,avail-8);
     if(r.imgB){ doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139); doc.text('BEFORE',14,y); try{ doc.addImage(r.imgB,'JPEG',14,y+2,88,imgH); }catch(ex){} }
     if(r.imgA){ doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(100,116,139); doc.text('AFTER',106,y); try{ doc.addImage(r.imgA,'JPEG',106,y+2,90,imgH); }catch(ex){} }
@@ -726,21 +757,21 @@ function exportOneXLSX(){
   const rows=[
     ['COUNTERMEASURE REPORT','','',''],[''],
     ['Document No',`CM-${String(i+1).padStart(4,'0')}`,'Status',st],[''],
-    ['━━  GENERAL INFORMATION  ━━','','',''],
-    ['วันที่เกิดปัญหา / Date',r.date||'','Model Group',r.model||''],
+    ['General Information','','',''],
+    ['Date',r.date||'','Model',r.model||''],
     ['Line',r.line||'','Process',r.process||''],
-    ['PIC (ผู้รับผิดชอบ)',r.pic||'','Due Date',r.due||''],
+    ['PIC',r.pic||'','Due Date',r.due||''],
     ['Created At',r.createdAt||'','Updated At',r.updatedAt||''],[''],
-    ['━━  PROBLEM DETAIL  ━━','','',''],
-    ['อาการเสีย / Issue','','',''],
+    ['Problem Detail','','',''],
+    ['Issue','','',''],
     [r.issue||'—','','',''],[''],
-    ['สาเหตุ / Root Cause','','',''],
+    ['Root Cause','','',''],
     [r.cause||'—','','',''],[''],
-    ['การแก้ไข / Countermeasure (CM)','','',''],
+    ['Countermeasure (CM)','','',''],
     [r.cm||'—','','',''],[''],
   ];
   if(files.length){
-    rows.push(['━━  ATTACHMENTS  ━━','','','']);
+    rows.push(['Attachments','','','']);
     files.forEach((f,fi)=>{ const sz=f.size>1048576?((f.size/1048576).toFixed(1)+' MB'):(Math.round(f.size/1024)+' KB'); rows.push([`${fi+1}.  ${f.name||''}`,sz,'','']); });
   }
   const ws=XLSX.utils.aoa_to_sheet(rows);
@@ -793,22 +824,22 @@ function exportAllXLSX(){
       ['COUNTERMEASURE REPORT',''],[''],
       ['Document No',`CM-${String(ri+1).padStart(4,'0')}`],
       ['Status',st],[''],
-      ['━━  GENERAL INFORMATION  ━━',''],
-      ['วันที่เกิดปัญหา',r.date||''],
-      ['Model Group',r.model||''],
+      ['General Information',''],
+      ['Date',r.date||''],
+      ['Model',r.model||''],
       ['Line',r.line||''],
       ['Process',r.process||''],
-      ['PIC (ผู้รับผิดชอบ)',r.pic||''],
+      ['PIC',r.pic||''],
       ['Due Date',r.due||''],
       ['Created At',r.createdAt||''],
       ['Updated At',r.updatedAt||''],[''],
-      ['━━  PROBLEM DETAIL  ━━',''],
-      ['อาการเสีย / Issue',r.issue||'—'],
-      ['สาเหตุ / Root Cause',r.cause||'—'],
-      ['การแก้ไข / CM',r.cm||'—'],[''],
+      ['Problem Detail',''],
+      ['Issue',r.issue||'—'],
+      ['Root Cause',r.cause||'—'],
+      ['Countermeasure (CM)',r.cm||'—'],[''],
     ];
     if(files.length){
-      rows.push(['━━  ATTACHMENTS  ━━','']);
+      rows.push(['Attachments','']);
       files.forEach((f,fi)=>{ const sz=f.size>1048576?((f.size/1048576).toFixed(1)+' MB'):(Math.round(f.size/1024)+' KB'); rows.push([`  ${fi+1}.  ${f.name||''}`,sz]); });
     }
     const ws=XLSX.utils.aoa_to_sheet(rows);
@@ -819,6 +850,72 @@ function exportAllXLSX(){
     XLSX.utils.book_append_sheet(wb,ws,sn);
   });
   XLSX.writeFile(wb,`CM_Report_All_${ds}.xlsx`);
+}
+
+// ══════════════ SPEECH TO TEXT ══════════════
+let micRecog=null, micTargetId=null;
+
+function toggleMic(fieldId){
+  // หยุด mic เดิมถ้ากำลังทำงานอยู่
+  if(micRecog){
+    micRecog.stop();
+    if(micTargetId===fieldId){ resetMicBtn(micTargetId); micRecog=null; micTargetId=null; return; }
+    resetMicBtn(micTargetId);
+  }
+
+  const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRec){ alert('เบราว์เซอร์นี้ไม่รองรับการบันทึกเสียง\nกรุณาใช้ Chrome หรือ Safari'); return; }
+
+  const lang=document.getElementById('micLang_'+fieldId)?.value||'th-TH';
+  const recog=new SpeechRec();
+  recog.lang=lang;
+  recog.continuous=true;       // บันทึกต่อเนื่องไม่หยุดเอง
+  recog.interimResults=true;   // แสดง interim ขณะพูด
+  recog.maxAlternatives=1;
+
+  const btn=document.getElementById('micBtn_'+fieldId);
+  const ta=document.getElementById(fieldId);
+  let finalText=ta.value;
+  let interimText='';
+
+  recog.onstart=()=>{
+    micTargetId=fieldId; micRecog=recog;
+    if(btn){ btn.classList.add('recording'); btn.innerHTML='<i class="ti ti-player-stop"></i>'; btn.title='แตะเพื่อหยุด'; }
+  };
+
+  recog.onresult=ev=>{
+    interimText='';
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const t=ev.results[i][0].transcript;
+      if(ev.results[i].isFinal){ finalText+=t; }
+      else{ interimText+=t; }
+    }
+    ta.value=finalText+interimText;
+    ta.scrollTop=ta.scrollHeight;
+  };
+
+  recog.onerror=ev=>{
+    if(ev.error==='no-speech') return; // ไม่ต้องแจ้ง
+    if(ev.error==='not-allowed'){ alert('กรุณาอนุญาต Microphone ในเบราว์เซอร์ก่อนครับ'); }
+    resetMicBtn(fieldId); micRecog=null; micTargetId=null;
+  };
+
+  recog.onend=()=>{
+    // ถ้ายังไม่กดหยุดเอง ให้รีสตาร์ทต่อเนื่อง (กัน timeout)
+    if(micRecog===recog && micTargetId===fieldId){
+      try{ recog.start(); }catch(e){ resetMicBtn(fieldId); micRecog=null; micTargetId=null; }
+    } else {
+      resetMicBtn(fieldId);
+    }
+  };
+
+  try{ recog.start(); }
+  catch(e){ alert('ไม่สามารถเริ่มบันทึกเสียงได้: '+e.message); }
+}
+
+function resetMicBtn(fieldId){
+  const btn=document.getElementById('micBtn_'+fieldId);
+  if(btn){ btn.classList.remove('recording'); btn.innerHTML='<i class="ti ti-microphone"></i>'; btn.title='พูดเพื่อบันทึก'; }
 }
 
 // ══════════════ INIT ══════════════
